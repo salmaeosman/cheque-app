@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>عرض الشيك</title>
+    <style>
+        .cheque {
+            border: 2px solid black;
+            padding: 20px;
+            width: 600px;
+            font-size: 20px;
+            direction: rtl;
+            margin: auto;
+        }
+    </style>
+</head>
+<body>
+<div class="cheque">
+    <p><strong>الاسم:</strong> <span th:text="${client.nom} + ' ' + ${client.prenom}"></span></p>
+    <p><strong>رقم الحساب:</strong> <span th:text="${client.numeroCompte}"></span></p>
+    <p><strong>المبلغ بالأرقام:</strong> <span th:text="${montant}"></span> درهم</p>
+    <p><strong>المبلغ بالحروف:</strong> <span th:text="${montantLettres}"></span> درهم</p>
+</div>
+</body>
+</html>
