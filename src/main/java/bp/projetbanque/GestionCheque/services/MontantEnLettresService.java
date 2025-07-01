@@ -4,7 +4,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class MontantEnLettresService {
 
-    public String convertirMontant(int montant, String langue) {
+    public String convertirMontant(double montant, String langue) {
         if ("ar".equalsIgnoreCase(langue)) {
             return NombreArabe.convert(montant);
         } else if ("fr".equalsIgnoreCase(langue)) {

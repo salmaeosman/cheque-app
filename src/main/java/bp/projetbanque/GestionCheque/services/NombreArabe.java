@@ -15,55 +15,74 @@ public class NombreArabe {
     };
 
     private static final String[] scales = {
-        "", "ألف", "مليون", "مليار"
+        "", "ألف", "مليون", "مليار", "ترليون"
     };
 
-    public static String convert(long number) {
-        if (number == 0) return "صفر درهم";
+    public static String convertDecimal(double number) {
+        if (number > 9999999999999.99) {
+            return "المبلغ يتجاوز الحد الأقصى المسموح به";
+        }
+
+        long integerPart = (long) number;
+        int fractionalPart = (int) Math.round((number - integerPart) * 100);
+
+        String result = convert(integerPart);
+
+        if (fractionalPart > 0) {
+            result += " و " + convertFractional(fractionalPart);
+        }
+
+        return result;
+    }
+
+    public static String convert(double montant) {
+        if (montant == 0) return "صفر درهم";
 
         String[] parts = new String[scales.length];
         int scaleIndex = 0;
-
-        long tempNumber = number;
+        long tempNumber = (long) montant;
 
         while (tempNumber > 0 && scaleIndex < scales.length) {
             int segment = (int) (tempNumber % 1000);
             if (segment > 0) {
                 String segmentText = convertLessThan1000(segment);
-
-                if (segment == 1 && scaleIndex > 0) {
-                    segmentText = ""; // éviter "واحد ألف"
-                }
-
-                if (scaleIndex > 0) {
-                    if (segmentText.isEmpty()) {
-                        segmentText = getScaleName(segment, scaleIndex);
-                    } else {
-                        segmentText += " " + getScaleName(segment, scaleIndex);
-                    }
-                }
-
-                parts[scaleIndex] = segmentText;
+                parts[scaleIndex] = formatSegment(segmentText, segment, scaleIndex);
             }
             tempNumber /= 1000;
             scaleIndex++;
         }
 
-        // Assembler les segments
         StringBuilder result = new StringBuilder();
+        boolean firstSegmentAdded = false;
+
         for (int i = parts.length - 1; i >= 0; i--) {
             if (parts[i] != null && !parts[i].isEmpty()) {
-                if (result.length() > 0) {
+                if (firstSegmentAdded) {
+                    // Toujours ajouter " و " entre segments
                     result.append(" و ");
                 }
                 result.append(parts[i]);
+                firstSegmentAdded = true;
             }
         }
 
-        // Ajouter le mot "درهم" avec la bonne terminaison
-        result.append(" ").append(getCurrencyWord(number));
+        int unitsSegment = (int) ((long) montant % 1000);
+        result.append(" ").append(getCurrencyWord((long) montant, unitsSegment));
 
         return result.toString();
+    }
+
+    private static String convertFractional(int centimes) {
+        if (centimes == 1) return "سنتيم واحد";
+        if (centimes == 2) return "سنتيمان";
+
+        if (centimes <= 19) {
+            return units[centimes] + " سنتيمًا";
+        } else {
+            int unit = centimes % 10;
+            int ten = centimes / 10;
+            return (unit > 0 ? units[unit] + " و " : "") + tens[ten] + " سنتيمًا";
+        }
     }
 
     private static String convertLessThan1000(int number) {
@@ -80,12 +99,10 @@ public class NombreArabe {
         int rem = number % 100;
         int hundred = number / 100;
 
-        String hundredStr = switch (hundred) {
-            case 1 -> "مائة";
-            case 2 -> "مئتان";
-            case 3, 4, 5, 6, 7, 8, 9 -> units[hundred] + " مائة";
-            default -> "";
-        };
+        String hundredStr;
+        if (hundred == 1) hundredStr = "مائة";
+        else if (hundred == 2) hundredStr = "مائتا";
+        else hundredStr = units[hundred] + " مائة";
 
         if (rem > 0) {
             return hundredStr + " و " + convertLessThan1000(rem);
@@ -94,42 +111,50 @@ public class NombreArabe {
         }
     }
 
-    private static String getScaleName(int number, int scaleIndex) {
-        if (scaleIndex == 1) { // ألف
-            if (number == 1) return "ألف";
-            if (number == 2) return "ألفان";
-            if (number >= 3 && number <= 10) return units[number] + " آلاف";
-            return "ألف";
-        }
+    private static String formatSegment(String numberText, int number, int scaleIndex) {
+        if (scaleIndex == 0) return numberText;
 
-        if (scaleIndex == 2) { // مليون
-            if (number == 1) return "مليون";
-            if (number == 2) return "مليونان";
-            if (number >= 3 && number <= 10) return units[number] + " ملايين";
-            return "مليون";
+        switch (scaleIndex) {
+            case 1: return formatScale(numberText, number, "ألف", "ألفا", "ألفان", "آلاف");
+            case 2: return formatScale(numberText, number, "مليون", "مليونًا", "مليونان", "ملايين");
+            case 3: return formatScale(numberText, number, "مليار", "مليارًا", "ملياران", "مليارات");
+            case 4: return formatScale(numberText, number, "ترليون", "ترليونًا", "ترليونان", "ترليونات");
+            default: return numberText;
         }
-
-        if (scaleIndex == 3) { // مليار
-            if (number == 1) return "مليار";
-            if (number == 2) return "ملياران";
-            if (number >= 3 && number <= 10) return units[number] + " مليارات";
-            return "مليار";
-        }
-
-        return "";
     }
 
-    private static String getCurrencyWord(long number) {
+    private static String formatScale(String numberText, int number, String singular, String accusative, String dual, String plural) {
+        if (number == 1) return singular;
+        if (number == 2) return dual;
+        if (number >= 3 && number <= 10) return numberText + " " + plural;
+        if (numberText.equals("مائتا")) return "مائتا " + singular;
+        
+        // بدل من accusative، نستخدم صيغة المضاف البسيطة
+        return numberText + " " + singular;
+    }
+
+
+    private static String getCurrencyWord(long number, int unitsSegment) {
         if (number == 1) return "درهم واحد";
         if (number == 2) return "درهمان";
 
-        long lastTwoDigits = number % 100;
-        if (lastTwoDigits >= 3 && lastTwoDigits <= 10) {
+        long lastTwo = number % 100;
+
+        // Cas sans unités (ex : 3000, 3200000)
+        if (unitsSegment == 0) {
+            if (number >= 1000) {
+                return "درهم"; // Sans tanwīn car moudāf
+            }
             return "دراهم";
-        } else if (lastTwoDigits >= 11 && lastTwoDigits <= 99) {
-            return "درهمًا";
-        } else {
-            return "درهم";
         }
+
+        // Cas entre 3 et 10
+        if (lastTwo >= 3 && lastTwo <= 10) {
+            return "دراهم";
+        }
+
+        // Cas général
+        return "درهمًا";
     }
+
 }
