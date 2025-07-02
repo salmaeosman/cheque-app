@@ -5,8 +5,8 @@
     <title>Chèque</title>
     <style>
         body { font-family: Arial, sans-serif; direction: rtl; }
-        .cheque { border: 2px solid #000; padding: 20px; width: 700px; margin: auto; }
-        .ligne { display: flex; justify-content: space-between; margin-bottom: 10px; }
+        .cheque { border: 2px solid #000; padding: 20px; max-width: 100%; width: 700px; margin: auto; }
+        .ligne { display: flex; justify-content: space-between; margin-bottom: 10px; flex-wrap: wrap; }
         h2 { text-align: center; }
     </style>
 </head>
@@ -18,8 +18,12 @@
         <span>Nom: <b th:text="${client.nom} + ' ' + ${client.prenom}"></b></span>
     </div>
     <div class="ligne">
-        <span>المبلغ بالأرقام: <b th:text="${montant}"></b> €</span>
-        <span>Montant en chiffres: <b th:text="${montant}"></b> €</span>
+        <span>المبلغ بالأرقام: 
+            <b th:text="${T(bp.projetbanque.GestionCheque.services.NombreArabe).formatNumber(montant)}"></b>
+        </span>
+        <span>Montant en chiffres: 
+            <b th:text="${T(bp.projetbanque.GestionCheque.services.NombreArabe).formatNumber(montant)}"></b>
+        </span>
     </div>
     <div class="ligne">
         <span>المبلغ كتابة: <b th:text="${montantLettre}"></b></span>

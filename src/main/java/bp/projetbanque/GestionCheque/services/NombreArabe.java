@@ -1,5 +1,9 @@
 package bp.projetbanque.GestionCheque.services;
 
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.util.Locale;
+
 public class NombreArabe {
 
     private static final String[] units = {
@@ -14,7 +18,7 @@ public class NombreArabe {
         "ستون", "سبعون", "ثمانون", "تسعون"
     };
 
-    private static final String[] scales = {
+    public static final String[] scales = {
         "", "ألف", "مليون", "مليار", "ترليون"
     };
 
@@ -58,7 +62,6 @@ public class NombreArabe {
         for (int i = parts.length - 1; i >= 0; i--) {
             if (parts[i] != null && !parts[i].isEmpty()) {
                 if (firstSegmentAdded) {
-                    // Toujours ajouter " و " entre segments
                     result.append(" و ");
                 }
                 result.append(parts[i]);
@@ -128,11 +131,9 @@ public class NombreArabe {
         if (number == 2) return dual;
         if (number >= 3 && number <= 10) return numberText + " " + plural;
         if (numberText.equals("مائتا")) return "مائتا " + singular;
-        
-        // بدل من accusative، نستخدم صيغة المضاف البسيطة
+
         return numberText + " " + singular;
     }
-
 
     private static String getCurrencyWord(long number, int unitsSegment) {
         if (number == 1) return "درهم واحد";
@@ -140,21 +141,30 @@ public class NombreArabe {
 
         long lastTwo = number % 100;
 
-        // Cas sans unités (ex : 3000, 3200000)
         if (unitsSegment == 0) {
             if (number >= 1000) {
-                return "درهم"; // Sans tanwīn car moudāf
+                return "درهم";
             }
             return "دراهم";
         }
 
-        // Cas entre 3 et 10
         if (lastTwo >= 3 && lastTwo <= 10) {
             return "دراهم";
         }
 
-        // Cas général
         return "درهمًا";
     }
 
+    public static String formatNumberWithDecimals(double number) {
+        DecimalFormatSymbols symbols = new DecimalFormatSymbols(Locale.FRANCE);
+        symbols.setGroupingSeparator(' ');
+        symbols.setDecimalSeparator(',');
+        DecimalFormat formatter = new DecimalFormat("#,##0.00", symbols);
+        return formatter.format(number);
+    }
+
+    // ✅ Alias utilisé par Thymeleaf
+    public static String formatNumber(Double number) {
+        return formatNumberWithDecimals(number);
+    }
 }
