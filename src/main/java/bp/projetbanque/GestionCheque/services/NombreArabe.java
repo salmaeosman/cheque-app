@@ -1,9 +1,5 @@
 package bp.projetbanque.GestionCheque.services;
 
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
-import java.util.Locale;
-
 public class NombreArabe {
 
     private static final String[] units = {
@@ -18,153 +14,194 @@ public class NombreArabe {
         "ستون", "سبعون", "ثمانون", "تسعون"
     };
 
-    public static final String[] scales = {
+    private static final String[] scales = {
         "", "ألف", "مليون", "مليار", "ترليون"
     };
-
-    public static String convertDecimal(double number) {
-        if (number > 9999999999999.99) {
-            return "المبلغ يتجاوز الحد الأقصى المسموح به";
-        }
-
-        long integerPart = (long) number;
-        int fractionalPart = (int) Math.round((number - integerPart) * 100);
-
-        String result = convert(integerPart);
-
-        if (fractionalPart > 0) {
-            result += " و " + convertFractional(fractionalPart);
-        }
-
-        return result;
-    }
+    
+    private static final String[] hundredsUnits = {
+        "", "", "", "ثلاث", "أربع", "خمس", "ست", "سبع", "ثمان", "تسع"
+    };
 
     public static String convert(double montant) {
         if (montant == 0) return "صفر درهم";
 
-        String[] parts = new String[scales.length];
-        int scaleIndex = 0;
-        long tempNumber = (long) montant;
-
-        while (tempNumber > 0 && scaleIndex < scales.length) {
-            int segment = (int) (tempNumber % 1000);
-            if (segment > 0) {
-                String segmentText = convertLessThan1000(segment);
-                parts[scaleIndex] = formatSegment(segmentText, segment, scaleIndex);
-            }
-            tempNumber /= 1000;
-            scaleIndex++;
-        }
+        long dirhams = (long) montant;
+        long centimes = Math.round((montant - dirhams) * 100);
 
         StringBuilder result = new StringBuilder();
-        boolean firstSegmentAdded = false;
 
-        for (int i = parts.length - 1; i >= 0; i--) {
-            if (parts[i] != null && !parts[i].isEmpty()) {
-                if (firstSegmentAdded) {
-                    result.append(" و ");
+        if (dirhams > 0) {
+            if (dirhams == 1) {
+                result.append("درهم واحد");
+            } else if (dirhams == 2) {
+                result.append("درهمان");
+            } else {
+                String numberWords = convertNumber(dirhams);
+                result.append(numberWords);
+                if (!numberWords.isEmpty()) {
+                    result.append(" ");
                 }
-                result.append(parts[i]);
-                firstSegmentAdded = true;
+                result.append(getCurrencyWord(dirhams));
             }
         }
 
-        int unitsSegment = (int) ((long) montant % 1000);
-        result.append(" ").append(getCurrencyWord((long) montant, unitsSegment));
+        if (centimes > 0) {
+            if (dirhams > 0) {
+                result.append(" و");
+            }
+            
+            if (centimes == 1) {
+                result.append("سنتيم واحد");
+            } else if (centimes == 2) {
+                result.append("سنتيمان");
+            } else {
+                String centimeWords = convertNumber(centimes);
+                result.append(centimeWords);
+                if (!centimeWords.isEmpty()) {
+                    result.append(" ");
+                }
+                result.append(getCentimeWord(centimes));
+            }
+        }
 
         return result.toString();
     }
 
-    private static String convertFractional(int centimes) {
-        if (centimes == 1) return "سنتيم واحد";
-        if (centimes == 2) return "سنتيمان";
+    private static String convertNumber(long number) {
+        if (number == 0) return "";
+        if (number < 0) return "";
 
-        if (centimes <= 19) {
-            return units[centimes] + " سنتيمًا";
-        } else {
-            int unit = centimes % 10;
-            int ten = centimes / 10;
-            return (unit > 0 ? units[unit] + " و " : "") + tens[ten] + " سنتيمًا";
+        String[] parts = new String[scales.length];
+        int scaleIndex = 0;
+        long temp = number;
+
+        while (temp > 0 && scaleIndex < scales.length) {
+            int segment = (int) (temp % 1000);
+            if (segment > 0) {
+                String segmentText = convertLessThan1000(segment);
+
+                if (segment == 2 && scaleIndex >= 0) {
+                    segmentText = "";
+                } else if (segment == 1 && scaleIndex > 0) {
+                    segmentText = "";
+                }
+                if (scaleIndex > 0) {
+                    String scaleName = getScaleName(segment, scaleIndex);
+                    if (segmentText.isEmpty()) {
+                        segmentText = scaleName;
+                    } else {
+                        segmentText += " " + scaleName;
+                    }
+                }
+
+                parts[scaleIndex] = segmentText;
+            }
+            temp /= 1000;
+            scaleIndex++;
         }
+
+        StringBuilder result = new StringBuilder();
+        for (int i = parts.length - 1; i >= 0; i--) {
+            if (parts[i] != null && !parts[i].isEmpty()) {
+                if (result.length() > 0) {
+                    result.append(" و");
+                }
+                result.append(parts[i]);
+            }
+        }
+
+        return result.toString();
     }
 
     private static String convertLessThan1000(int number) {
         if (number == 0) return "";
-
         if (number < 20) return units[number];
 
         if (number < 100) {
             int unit = number % 10;
             int ten = number / 10;
-            return (unit > 0 ? units[unit] + " و " : "") + tens[ten];
+            
+            if (unit == 0) {
+                return tens[ten];
+            } else {
+                return units[unit] + " و" + tens[ten];
+            }
         }
 
         int rem = number % 100;
         int hundred = number / 100;
 
         String hundredStr;
-        if (hundred == 1) hundredStr = "مائة";
-        else if (hundred == 2) hundredStr = "مائتا";
-        else hundredStr = units[hundred] + " مائة";
+        if (hundred == 1) {
+            hundredStr = "مائة";
+        } else if (hundred == 2) {
+            hundredStr = (rem == 0) ? "مئتا" : "مئتان";
+        } else {
+            hundredStr = hundredsUnits[hundred] + "مائة";
+        }
 
         if (rem > 0) {
-            return hundredStr + " و " + convertLessThan1000(rem);
+            return hundredStr + " و" + convertLessThan1000(rem);
         } else {
             return hundredStr;
         }
     }
 
-    private static String formatSegment(String numberText, int number, int scaleIndex) {
-        if (scaleIndex == 0) return numberText;
-
-        switch (scaleIndex) {
-            case 1: return formatScale(numberText, number, "ألف", "ألفا", "ألفان", "آلاف");
-            case 2: return formatScale(numberText, number, "مليون", "مليونًا", "مليونان", "ملايين");
-            case 3: return formatScale(numberText, number, "مليار", "مليارًا", "ملياران", "مليارات");
-            case 4: return formatScale(numberText, number, "ترليون", "ترليونًا", "ترليونان", "ترليونات");
-            default: return numberText;
+    private static String getScaleName(int number, int scaleIndex) {
+        if (scaleIndex == 1) { // Thousands
+            if (number == 1) return "ألف";
+            if (number == 2) return "ألفان";
+            if (number >= 3 && number <= 10) return "آلاف";
+            return "ألفاً";
         }
+
+        if (scaleIndex == 2) { // Millions
+            if (number == 1) return "مليون";
+            if (number == 2) return "مليونان";
+            if (number >= 3 && number <= 10) return "ملايين";
+            return "مليونًا";
+        }
+
+        if (scaleIndex == 3) { // Billions
+            if (number == 1) return "مليار";
+            if (number == 2) return "ملياران";
+            if (number >= 3 && number <= 10) return "مليارات";
+            return "مليارًا";
+        }
+
+        if (scaleIndex == 4) { // Trillions
+            if (number == 1) return "ترليون";
+            if (number == 2) return "ترليونان";
+            if (number >= 3 && number <= 10) return "ترليونات";
+            return "ترليونًا";
+        }
+
+        return "";
     }
 
-    private static String formatScale(String numberText, int number, String singular, String accusative, String dual, String plural) {
-        if (number == 1) return singular;
-        if (number == 2) return dual;
-        if (number >= 3 && number <= 10) return numberText + " " + plural;
-        if (numberText.equals("مائتا")) return "مائتا " + singular;
-
-        return numberText + " " + singular;
-    }
-
-    private static String getCurrencyWord(long number, int unitsSegment) {
-        if (number == 1) return "درهم واحد";
-        if (number == 2) return "درهمان";
-
+    private static String getCurrencyWord(long number) {
         long lastTwo = number % 100;
-
-        if (unitsSegment == 0) {
-            if (number >= 1000) {
-                return "درهم";
-            }
+        
+        if (number == 200000) return "درهم"; // Cas spécial pour 200,000
+        
+        if (lastTwo == 0) {
+            return "درهم";
+        } else if (lastTwo == 1) {
+            return "درهم";
+        } else if (lastTwo == 2) {
             return "دراهم";
-        }
-
-        if (lastTwo >= 3 && lastTwo <= 10) {
+        } else if (lastTwo >= 3 && lastTwo <= 10) {
             return "دراهم";
+        } else {
+            return "درهمًا";
         }
-
-        return "درهمًا";
     }
 
-    public static String formatNumberWithDecimals(double number) {
-        DecimalFormatSymbols symbols = new DecimalFormatSymbols(Locale.FRANCE);
-        symbols.setGroupingSeparator(' ');
-        symbols.setDecimalSeparator(',');
-        DecimalFormat formatter = new DecimalFormat("#,##0.00", symbols);
-        return formatter.format(number);
-    }
-
-    // ✅ Alias utilisé par Thymeleaf
-    public static String formatNumber(Double number) {
-        return formatNumberWithDecimals(number);
+    private static String getCentimeWord(long number) {
+        if (number >= 3 && number <= 10) {
+            return "سنتيمات";
+        } else {
+            return "سنتيمًا";
+        }
     }
 }
