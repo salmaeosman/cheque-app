@@ -151,6 +151,7 @@ public class NombreArabe {
         if (scaleIndex == 1) { // Thousands
             if (number == 1) return "ألف";
             if (number == 2) return "ألفان";
+            if (number == 200) return "ألف"; // Cas spécial pour 200,000
             if (number >= 3 && number <= 10) return "آلاف";
             return "ألفاً";
         }
@@ -158,6 +159,7 @@ public class NombreArabe {
         if (scaleIndex == 2) { // Millions
             if (number == 1) return "مليون";
             if (number == 2) return "مليونان";
+            if (number == 200) return "مليون"; // Cas spécial pour 200,000,000
             if (number >= 3 && number <= 10) return "ملايين";
             return "مليونًا";
         }
@@ -165,6 +167,7 @@ public class NombreArabe {
         if (scaleIndex == 3) { // Billions
             if (number == 1) return "مليار";
             if (number == 2) return "ملياران";
+            if (number == 200) return "مليار";
             if (number >= 3 && number <= 10) return "مليارات";
             return "مليارًا";
         }
@@ -172,6 +175,7 @@ public class NombreArabe {
         if (scaleIndex == 4) { // Trillions
             if (number == 1) return "ترليون";
             if (number == 2) return "ترليونان";
+            if (number == 200) return "ترليون";
             if (number >= 3 && number <= 10) return "ترليونات";
             return "ترليونًا";
         }
