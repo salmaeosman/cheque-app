@@ -8,7 +8,7 @@
             width: 1000px;
             height: 450px;
             margin: auto;
-            background-image: url('/images/cheque_bg.png'); /* ton image */
+            background-image: url('/images/cheque_bg.png');
             background-size: cover;
             background-repeat: no-repeat;
             position: relative;
@@ -20,35 +20,131 @@
             font-weight: bold;
             font-size: 16px;
             color: #000;
+            white-space: nowrap;
         }
 
-        /* Montant en haut à droite (DH) */
         .montant-chiffres {
-            top: 40px;       /* plus bas si nécessaire */
-            right: 180px;    /* légèrement à gauche */
+            top: 40px;
+            right: 140px;
         }
 
-        /* Montant en lettres (juste sous la ligne) */
-        .montant-lettres {
-            top: 132px;      /* ajusté pile sur la bonne ligne */
-            left: 135px;
-            width: 80%;
+        /* Français */
+        .montant-lettres-ligne1 {
+            top: 100px;
+            left: 440px;
+            width: 700px;
             font-size: 15px;
+            white-space: normal;
         }
 
-        /* Nom sur la ligne "À l'ordre de" */
+        .montant-lettres-ligne2 {
+            top: 135px;
+            left: 200px;
+            width: 700px;
+            font-size: 15px;
+            white-space: normal;
+        }
+
         .nom {
-            top: 168px;      /* aligné avec la ligne */
+            top: 168px;
             left: 200px;
             font-size: 17px;
+        }
+
+        /* Arabe (après "ادفعوا مقابل هذا الشيك") */
+        .montant-lettres-arabe-ligne1 {
+            top: 40px;
+            right: 2px;
+            width: 700px;
+            font-size: 15px;
+            white-space: normal;
+            direction: rtl;
+            text-align: right;
+        }
+
+        .montant-lettres-arabe-ligne2 {
+            top: 65px;
+            right: 270px;
+            width: 700px;
+            font-size: 15px;
+            white-space: normal;
+            direction: rtl;
+            text-align: right;
         }
     </style>
 </head>
 <body>
 <div class="cheque">
-<div class="field montant-chiffres"
-     th:text="${#numbers.formatDecimal(montant, 0, 'COMMA', 2, 'POINT')} + ' DH'"></div>    <div class="field montant-lettres" th:text="${montantLettre}"></div>
+    <!-- Montant en chiffres -->
+    <div class="field montant-chiffres"
+         th:text="${#numbers.formatDecimal(montant, 0, 'COMMA', 2, 'POINT')} "></div>
+
+    <!-- Montant en lettres FR -->
+    <div id="ligne1" class="field montant-lettres-ligne1"
+         th:text="${montantLettre}"></div>
+    <div id="ligne2" class="field montant-lettres-ligne2"></div>
+
+    <!-- Montant en lettres AR -->
+    <div id="arLigne1" class="field montant-lettres-arabe-ligne1"
+         th:text="${montantLettreAr}"></div>
+    <div id="arLigne2" class="field montant-lettres-arabe-ligne2"></div>
+
+    <!-- Nom du client -->
     <div class="field nom" th:text="${client.nom} + ' ' + ${client.prenom}"></div>
 </div>
+
+<script>
+    window.addEventListener('DOMContentLoaded', () => {
+        // Français
+        const ligne1 = document.getElementById('ligne1');
+        const ligne2 = document.getElementById('ligne2');
+        const fullTextFr = ligne1.textContent.trim();
+        const maxCharsPerLineFr = 60;
+
+        if (fullTextFr.length > maxCharsPerLineFr) {
+            const words = fullTextFr.split(' ');
+            let firstLine = '';
+            let secondLine = '';
+
+            for (let word of words) {
+                if ((firstLine + ' ' + word).trim().length <= maxCharsPerLineFr) {
+                    firstLine += ' ' + word;
+                } else {
+                    secondLine += ' ' + word;
+                }
+            }
+
+            ligne1.textContent = firstLine.trim();
+            ligne2.textContent = secondLine.trim();
+        } else {
+            ligne2.textContent = '';
+        }
+
+        // Arabe
+        const arLigne1 = document.getElementById('arLigne1');
+        const arLigne2 = document.getElementById('arLigne2');
+        const fullTextAr = arLigne1.textContent.trim();
+        const maxCharsPerLineAr = 55;
+
+        if (fullTextAr.length > maxCharsPerLineAr) {
+            const wordsAr = fullTextAr.split(' ');
+            let line1 = '';
+            let line2 = '';
+
+            for (let word of wordsAr) {
+                if ((line1 + ' ' + word).trim().length <= maxCharsPerLineAr) {
+                    line1 += ' ' + word;
+                } else {
+                    line2 += ' ' + word;
+                }
+            }
+
+            arLigne1.textContent = line1.trim();
+            arLigne2.textContent = line2.trim();
+        } else {
+            arLigne2.textContent = '';
+        }
+    });
+</script>
 </body>
 </html>
