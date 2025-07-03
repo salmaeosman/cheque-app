@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title>Chèque</title>
@@ -28,7 +28,6 @@
             right: 140px;
         }
 
-        /* Français */
         .montant-lettres-ligne1 {
             top: 100px;
             left: 440px;
@@ -45,13 +44,6 @@
             white-space: normal;
         }
 
-        .nom {
-            top: 168px;
-            left: 200px;
-            font-size: 17px;
-        }
-
-        /* Arabe (après "ادفعوا مقابل هذا الشيك") */
         .montant-lettres-arabe-ligne1 {
             top: 40px;
             right: 2px;
@@ -71,79 +63,55 @@
             direction: rtl;
             text-align: right;
         }
+
+        .nom {
+            top: 168px;
+            left: 200px;
+            font-size: 17px;
+        }
     </style>
 </head>
 <body>
 <div class="cheque">
-    <!-- Montant en chiffres -->
-    <div class="field montant-chiffres"
-         th:text="${#numbers.formatDecimal(montant, 0, 'COMMA', 2, 'POINT')} "></div>
+    <div class="field montant-chiffres" th:text="${#numbers.formatDecimal(montant, 1, 'COMMA', 2, 'POINT')}"></div>
 
-    <!-- Montant en lettres FR -->
-    <div id="ligne1" class="field montant-lettres-ligne1"
-         th:text="${montantLettre}"></div>
+    <div id="ligne1" class="field montant-lettres-ligne1" th:text="${montantLettre}"></div>
     <div id="ligne2" class="field montant-lettres-ligne2"></div>
-
-    <!-- Montant en lettres AR -->
-    <div id="arLigne1" class="field montant-lettres-arabe-ligne1"
-         th:text="${montantLettreAr}"></div>
-    <div id="arLigne2" class="field montant-lettres-arabe-ligne2"></div>
-
-    <!-- Nom du client -->
-    <div class="field nom" th:text="${client.nom} + ' ' + ${client.prenom}"></div>
+    <div class="field nom" th:text="${client.nom + ' ' + client.prenom}"></div>
+    <div class="field" style="top: 200px; left: 200px;" th:text="${cheque.nomCheque}"></div>
+    <div class="field" style="top: 230px; left: 200px;" th:text="${cheque.ville}"></div>
+    <div class="field" style="top: 260px; left: 200px;" th:text="${cheque.date}"></div>
+    <div class="field" style="top: 300px; left: 200px;" th:text="${cheque.serieNo}"></div>
 </div>
 
 <script>
     window.addEventListener('DOMContentLoaded', () => {
-        // Français
-        const ligne1 = document.getElementById('ligne1');
-        const ligne2 = document.getElementById('ligne2');
-        const fullTextFr = ligne1.textContent.trim();
-        const maxCharsPerLineFr = 60;
+        const maxCharsFr = 60;
+        const maxCharsAr = 55;
 
-        if (fullTextFr.length > maxCharsPerLineFr) {
-            const words = fullTextFr.split(' ');
-            let firstLine = '';
-            let secondLine = '';
-
-            for (let word of words) {
-                if ((firstLine + ' ' + word).trim().length <= maxCharsPerLineFr) {
-                    firstLine += ' ' + word;
-                } else {
-                    secondLine += ' ' + word;
+        function splitText(id1, id2, maxChars) {
+            const el1 = document.getElementById(id1);
+            const el2 = document.getElementById(id2);
+            const fullText = el1.textContent.trim();
+            if (fullText.length > maxChars) {
+                const words = fullText.split(' ');
+                let line1 = '', line2 = '';
+                for (let word of words) {
+                    if ((line1 + ' ' + word).trim().length <= maxChars) {
+                        line1 += ' ' + word;
+                    } else {
+                        line2 += ' ' + word;
+                    }
                 }
+                el1.textContent = line1.trim();
+                el2.textContent = line2.trim();
+            } else {
+                el2.textContent = '';
             }
-
-            ligne1.textContent = firstLine.trim();
-            ligne2.textContent = secondLine.trim();
-        } else {
-            ligne2.textContent = '';
         }
 
-        // Arabe
-        const arLigne1 = document.getElementById('arLigne1');
-        const arLigne2 = document.getElementById('arLigne2');
-        const fullTextAr = arLigne1.textContent.trim();
-        const maxCharsPerLineAr = 55;
-
-        if (fullTextAr.length > maxCharsPerLineAr) {
-            const wordsAr = fullTextAr.split(' ');
-            let line1 = '';
-            let line2 = '';
-
-            for (let word of wordsAr) {
-                if ((line1 + ' ' + word).trim().length <= maxCharsPerLineAr) {
-                    line1 += ' ' + word;
-                } else {
-                    line2 += ' ' + word;
-                }
-            }
-
-            arLigne1.textContent = line1.trim();
-            arLigne2.textContent = line2.trim();
-        } else {
-            arLigne2.textContent = '';
-        }
+        splitText('ligne1', 'ligne2', maxCharsFr);
+        splitText('arLigne1', 'arLigne2', maxCharsAr);
     });
 </script>
 </body>
