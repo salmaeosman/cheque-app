@@ -4,13 +4,18 @@ import jakarta.persistence.*;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "cheques")
+@Table(name = "cheques", uniqueConstraints = {
+    @UniqueConstraint(columnNames = {"nomCheque", "nomSerie", "numeroSerie"})
+})
 public class Cheque {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String nomCheque;
+
+    private String nomSerie; // nouveau champ
 
     private double montant;
 
@@ -18,18 +23,21 @@ public class Cheque {
 
     private String ville;
 
-    private String serieNo;
+    @Column(nullable = false)
+    private Long numeroSerie;
 
     @ManyToOne
     @JoinColumn(name = "client_id", nullable = false)
     private Client beneficiaire;
 
-    // Getters et Setters
+    // Getters & Setters
     public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
 
     public String getNomCheque() { return nomCheque; }
     public void setNomCheque(String nomCheque) { this.nomCheque = nomCheque; }
+
+    public String getNomSerie() { return nomSerie; }
+    public void setNomSerie(String nomSerie) { this.nomSerie = nomSerie; }
 
     public double getMontant() { return montant; }
     public void setMontant(double montant) { this.montant = montant; }
@@ -40,8 +48,9 @@ public class Cheque {
     public String getVille() { return ville; }
     public void setVille(String ville) { this.ville = ville; }
 
-    public String getSerieNo() { return serieNo; }
-    public void setSerieNo(String serieNo) { this.serieNo = serieNo; }
+
+    public Long getNumeroSerie() { return numeroSerie; }
+    public void setNumeroSerie(Long numeroSerie) { this.numeroSerie = numeroSerie; }
 
     public Client getBeneficiaire() { return beneficiaire; }
     public void setBeneficiaire(Client beneficiaire) { this.beneficiaire = beneficiaire; }
