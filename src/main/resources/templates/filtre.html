@@ -11,22 +11,22 @@
 
     <form action="/filtre-resultats" method="get" class="row g-3">
 
-        <div class="col-md-3">
-            <label for="nomCheque" class="form-label">Nom du chèque</label>
-            <input type="text" id="nomCheque" name="nomCheque" class="form-control">
+        <div class="col-md-4">
+            <label for="cheque" class="form-label">Chèque</label>
+            <input type="text" id="cheque" name="cheque" class="form-control">
         </div>
 
-        <div class="col-md-3">
-            <label for="nomSerie" class="form-label">Nom de la série</label>
-            <input type="text" id="nomSerie" name="nomSerie" class="form-control">
+        <div class="col-md-4">
+            <label for="date" class="form-label">Date</label>
+            <input type="date" id="date" name="date" class="form-control">
         </div>
 
-        <div class="col-md-3">
-            <label for="numeroSerie" class="form-label">Numéro de série</label>
-            <input type="number" id="numeroSerie" name="numeroSerie" class="form-control">
+        <div class="col-md-4">
+            <label for="beneficiaire" class="form-label">Bénéficiaire</label>
+            <input type="text" id="beneficiaire" name="beneficiaire" class="form-control">
         </div>
 
-        <div class="col-md-3">
+        <div class="col-md-4">
             <label for="montant" class="form-label">Montant</label>
             <input type="number" id="montant" name="montant" class="form-control" step="0.01">
         </div>
@@ -44,22 +44,18 @@
         <table class="table table-bordered mt-3" th:if="${resultats.size() > 0}">
             <thead>
                 <tr>
-                    <th>Nom chèque</th>
-                    <th>Nom série</th>
-                    <th>Numéro série</th>
-                    <th>Montant</th>
-                    <th>Ville</th>
+                    <th>Chèque</th>
+                    <th>Bénéficiaire</th>
                     <th>Date</th>
+                    <th>Montant</th>
                 </tr>
             </thead>
             <tbody>
                 <tr th:each="cheque : ${resultats}">
-                    <td th:text="${cheque.nomCheque}"></td>
-                    <td th:text="${cheque.nomSerie}"></td>
-                    <td th:text="${cheque.numeroSerie}"></td>
-                    <td th:text="${#numbers.formatDecimal(cheque.montant, 1, 'NONE', 2, 'POINT')}"></td>
-                    <td th:text="${cheque.ville}"></td>
+                    <td th:text="${cheque.nomCheque + cheque.nomSerie + cheque.numeroSerie}"></td>
+                    <td th:text="${cheque.beneficiaire}"></td>
                     <td th:text="${cheque.date}"></td>
+                    <td th:text="${#numbers.formatDecimal(cheque.montant, 1, 'NONE', 2, 'POINT')}"></td>
                 </tr>
             </tbody>
         </table>
