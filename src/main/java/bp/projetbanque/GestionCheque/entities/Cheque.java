@@ -22,7 +22,6 @@ public class Cheque {
     @Column(nullable = false)
     private Long numeroSerie;
 
-    private String typeBeneficiaire; // "physique" ou "morale"
     private String beneficiaire;
 
     // Getters & Setters
@@ -46,10 +45,6 @@ public class Cheque {
     public Long getNumeroSerie() { return numeroSerie; }
     public void setNumeroSerie(Long numeroSerie) { this.numeroSerie = numeroSerie; }
 
-    public String getTypeBeneficiaire() { return typeBeneficiaire; }
-    public void setTypeBeneficiaire(String typeBeneficiaire) { this.typeBeneficiaire = typeBeneficiaire; }
-
     public String getBeneficiaire() { return beneficiaire; }
     public void setBeneficiaire(String beneficiaire) { this.beneficiaire = beneficiaire; }
-
 }

@@ -29,10 +29,7 @@ public class ChequeMvcController {
 
     @PostMapping("/enregistrer")
     public String enregistrerCheque(
-            @RequestParam String typeBeneficiaire,
-            @RequestParam(required = false) String nom,
-            @RequestParam(required = false) String prenom,
-            @RequestParam(required = false) String raisonSociale,
+            @RequestParam String beneficiaire,
             @RequestParam double montant,
             @RequestParam String ville,
             @RequestParam String langue,
@@ -51,24 +48,9 @@ public class ChequeMvcController {
             return "formulaire";
         }
 
-        String beneficiaire;
-        if ("physique".equals(typeBeneficiaire)) {
-            if (nom == null || nom.isBlank() || prenom == null || prenom.isBlank()) {
-                model.addAttribute("cheque", new Cheque());
-                model.addAttribute("erreur", "Nom et prénom requis pour une personne physique.");
-                return "formulaire";
-            }
-            beneficiaire = nom.toUpperCase() + " " + prenom.toUpperCase();
-        } else if ("morale".equals(typeBeneficiaire)) {
-            if (raisonSociale == null || raisonSociale.isBlank()) {
-                model.addAttribute("cheque", new Cheque());
-                model.addAttribute("erreur", "Raison sociale requise pour une personne morale.");
-                return "formulaire";
-            }
-            beneficiaire = raisonSociale.toUpperCase();
-        } else {
+        if (beneficiaire == null || beneficiaire.isBlank()) {
             model.addAttribute("cheque", new Cheque());
-            model.addAttribute("erreur", "Type de bénéficiaire invalide.");
+            model.addAttribute("erreur", "Le nom du bénéficiaire est requis.");
             return "formulaire";
         }
 
@@ -79,8 +61,7 @@ public class ChequeMvcController {
         cheque.setNomCheque(nomChequeUpper);
         cheque.setNomSerie(nomSerieUpper);
         cheque.setNumeroSerie(numeroSerie);
-        cheque.setTypeBeneficiaire(typeBeneficiaire);
-        cheque.setBeneficiaire(beneficiaire);
+        cheque.setBeneficiaire(beneficiaire.toUpperCase());
 
         chequeRepository.save(cheque);
 
@@ -148,8 +129,10 @@ public class ChequeMvcController {
         original.setNomCheque(newNomCheque);
         original.setNomSerie(newNomSerie);
         original.setNumeroSerie(newNumeroSerie);
-        original.setTypeBeneficiaire(cheque.getTypeBeneficiaire());
-        original.setBeneficiaire(cheque.getBeneficiaire());
+
+        if (cheque.getBeneficiaire() != null && !cheque.getBeneficiaire().isBlank()) {
+            original.setBeneficiaire(cheque.getBeneficiaire().toUpperCase());
+        }
 
         chequeRepository.save(original);
         return "redirect:/cheque/afficher/" + original.getId();
