@@ -44,7 +44,10 @@
     <div class="field montant-chiffres" th:text="${#numbers.formatDecimal(montant, 1, 'COMMA', 2, 'POINT')}"></div>
     <div id="ligne1" class="field montant-lettres-ligne1" th:text="${montantLettre}"></div>
     <div id="ligne2" class="field montant-lettres-ligne2"></div>
-    <div class="field nom" th:text="${client.nom + ' ' + client.prenom}"></div>
+
+    <!-- ✅ Correction ici : on affiche correctement le bénéficiaire -->
+    <div class="field nom" th:text="${cheque.beneficiaire}"></div>
+
     <div class="field cheque-nom" th:text="${cheque.nomCheque}"></div>
     <div class="field" style="top: 330px; left: 450px; font-size: 15px;" th:text="${cheque.nomSerie}"></div>
     <div class="field ville" th:text="${cheque.ville}"></div>

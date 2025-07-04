@@ -14,21 +14,16 @@ public class Cheque {
     private Long id;
 
     private String nomCheque;
-
-    private String nomSerie; // nouveau champ
-
+    private String nomSerie;
     private double montant;
-
     private LocalDate date;
-
     private String ville;
 
     @Column(nullable = false)
     private Long numeroSerie;
 
-    @ManyToOne
-    @JoinColumn(name = "client_id", nullable = false)
-    private Client beneficiaire;
+    private String typeBeneficiaire; // "physique" ou "morale"
+    private String beneficiaire;
 
     // Getters & Setters
     public Long getId() { return id; }
@@ -48,10 +43,13 @@ public class Cheque {
     public String getVille() { return ville; }
     public void setVille(String ville) { this.ville = ville; }
 
-
     public Long getNumeroSerie() { return numeroSerie; }
     public void setNumeroSerie(Long numeroSerie) { this.numeroSerie = numeroSerie; }
 
-    public Client getBeneficiaire() { return beneficiaire; }
-    public void setBeneficiaire(Client beneficiaire) { this.beneficiaire = beneficiaire; }
+    public String getTypeBeneficiaire() { return typeBeneficiaire; }
+    public void setTypeBeneficiaire(String typeBeneficiaire) { this.typeBeneficiaire = typeBeneficiaire; }
+
+    public String getBeneficiaire() { return beneficiaire; }
+    public void setBeneficiaire(String beneficiaire) { this.beneficiaire = beneficiaire; }
+
 }
