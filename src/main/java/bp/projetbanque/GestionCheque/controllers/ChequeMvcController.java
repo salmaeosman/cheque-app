@@ -1,3 +1,4 @@
+// ChequeMvcController.java
 package bp.projetbanque.GestionCheque.controllers;
 
 import bp.projetbanque.GestionCheque.entities.Cheque;
@@ -16,7 +17,7 @@ public class ChequeMvcController {
 
     @Autowired
     private ChequeRepository chequeRepository;
- 
+
     @Autowired
     private MontantEnLettresService montantService;
 
@@ -35,7 +36,8 @@ public class ChequeMvcController {
             @RequestParam String nomCheque,
             @RequestParam String nomSerie,
             @RequestParam Long numeroSerie,
-            @RequestParam("date") String dateStr  // récupère la date du formulaire
+            @RequestParam("date") String dateStr,
+            Model model
     ) {
         String nomChequeUpper = nomCheque.toUpperCase();
         String nomSerieUpper = nomSerie.toUpperCase();
@@ -51,11 +53,7 @@ public class ChequeMvcController {
         Cheque cheque = new Cheque();
         cheque.setMontant(montant);
         cheque.setVille(ville);
-
-        // ✅ Conversion de la date saisie (format yyyy-MM-dd)
-        LocalDate dateCheque = LocalDate.parse(dateStr);
-        cheque.setDate(dateCheque);
-
+        cheque.setDate(LocalDate.parse(dateStr));
         cheque.setNomCheque(nomChequeUpper);
         cheque.setNomSerie(nomSerieUpper);
         cheque.setNumeroSerie(numeroSerie);
@@ -63,29 +61,30 @@ public class ChequeMvcController {
 
         chequeRepository.save(cheque);
 
-        return "redirect:/cheque/afficher/" + cheque.getId();
+        // Redirection avec paramètre de langue pour réaffichage correct
+        return "redirect:/cheque/afficher/" + cheque.getId() + "?langue=" + langue;
     }
 
-
     @GetMapping("/afficher/{id}")
-    public String afficherCheque(@PathVariable Long id, Model model) {
+    public String afficherCheque(@PathVariable Long id,
+                                  @RequestParam(defaultValue = "fr") String langue,
+                                  Model model) {
         Cheque cheque = chequeRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Chèque introuvable"));
 
         if (cheque.getNomCheque() == null ||
-            cheque.getNomSerie() == null ||
-            cheque.getNumeroSerie() == null ||
-            cheque.getVille() == null ||
-            cheque.getDate() == null ||
-            cheque.getBeneficiaire() == null) {
+                cheque.getNomSerie() == null ||
+                cheque.getNumeroSerie() == null ||
+                cheque.getVille() == null ||
+                cheque.getDate() == null ||
+                cheque.getBeneficiaire() == null) {
 
             return "redirect:/cheque/formulaire?erreur=incomplet";
         }
 
         model.addAttribute("cheque", cheque);
         model.addAttribute("montant", cheque.getMontant());
-        model.addAttribute("montantLettre", montantService.convertirMontant(cheque.getMontant(), "fr"));
-        model.addAttribute("montantLettreAr", montantService.convertirMontant(cheque.getMontant(), "ar"));
+        model.addAttribute("montantLettre", montantService.convertirMontant(cheque.getMontant(), langue));
 
         return "cheque";
     }

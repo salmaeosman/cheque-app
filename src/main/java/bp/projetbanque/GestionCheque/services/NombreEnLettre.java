@@ -14,85 +14,62 @@ public class NombreEnLettre {
     };
 
     public static String convertir(double montant) {
-        if (montant < 0) {
-            throw new IllegalArgumentException("Le montant doit être positif.");
-        }
-        if (montant > 2_000_000_000.0) {
-            throw new IllegalArgumentException("Le montant ne doit pas dépasser 2 milliards de dirhams.");
-        }
-
-        long entier = (long) montant;
+        int entier = (int) montant;
         int centimes = (int) Math.round((montant - entier) * 100);
 
-        StringBuilder texte = new StringBuilder();
+        String texte = "";
 
-        // Dirhams
         if (entier > 0) {
-            texte.append(convertirNombre(entier))
-                 .append(entier > 1 ? " dirhams" : " dirham");
+            texte += convertirNombre(entier) + " dirhams";
         }
 
-        // Centimes — attention à l’ordre !
         if (centimes > 0) {
-            if (texte.length() > 0) {
-                texte.append(" et ");
+            if (!texte.isEmpty()) {
+                texte += " et ";
             }
-            String centTxt = convertirNombre(centimes)
-                           + (centimes > 1 ? " centimes" : " centime");
-            texte.append(centTxt);
+            texte += convertirNombre(centimes) + " centimes";
         }
 
-        if (texte.length() == 0) {
-            texte.append("zéro dirham");
+        if (texte.isEmpty()) {
+            texte = "zéro dirham";
         }
 
-        return texte.toString();
+        return texte;
     }
 
-    private static String convertirNombre(long n) {
+
+    private static String convertirNombre(int n) {
         if (n == 0) return "zéro";
 
         StringBuilder sb = new StringBuilder();
 
-        if (n >= 1_000_000_000L) {
-            long milliards = n / 1_000_000_000L;
-            sb.append(convertirNombre(milliards))
-              .append(milliards > 1 ? " milliards" : " milliard");
-            n %= 1_000_000_000L;
+        if (n >= 1_000_000) {
+            int millions = n / 1_000_000;
+            sb.append(convertirNombre(millions)).append(" million");
+            if (millions > 1) sb.append("s");
+            n %= 1_000_000;
             if (n > 0) sb.append(" ");
         }
 
-        if (n >= 1_000_000L) {
-            long millions = n / 1_000_000L;
-            sb.append(convertirNombre(millions))
-              .append(millions > 1 ? " millions" : " million");
-            n %= 1_000_000L;
-            if (n > 0) sb.append(" ");
-        }
-
-        if (n >= 1000L) {
-            long milliers = n / 1000L;
-            if (milliers > 1) {
-                sb.append(convertirNombre(milliers)).append(" ");
-            }
+        if (n >= 1000) {
+            int milliers = n / 1000;
+            if (milliers > 1) sb.append(convertirNombre(milliers)).append(" ");
             sb.append("mille");
-            n %= 1000L;
+            n %= 1000;
             if (n > 0) sb.append(" ");
         }
 
-        if (n >= 100L) {
-            long centaines = n / 100L;
-            if (centaines > 1) {
-                sb.append(UNITS[(int) centaines]).append(" ");
-            }
+        if (n >= 100) {
+            int centaines = n / 100;
+            if (centaines > 1) sb.append(UNITS[centaines]).append(" ");
             sb.append("cent");
-            n %= 100L;
+            n %= 100;
             if (n > 0) sb.append(" ");
         }
 
         if (n >= 20) {
-            int d = (int) (n / 10);
-            int u = (int) (n % 10);
+            int d = n / 10;
+            int u = n % 10;
             sb.append(TENS[d]);
             if (d == 7 || d == 9) {
                 sb.append("-").append(UNITS[10 + u]);
@@ -102,7 +79,7 @@ public class NombreEnLettre {
                 sb.append("-").append(UNITS[u]);
             }
         } else if (n > 0) {
-            sb.append(UNITS[(int) n]);
+            sb.append(UNITS[n]);
         }
 
         return sb.toString().trim();
