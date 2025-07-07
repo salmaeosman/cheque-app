@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Chèque</title>
+    <style>
+        .cheque {
+            width: 1000px;
+            height: 450px;
+            margin: auto;
+            background-image: url('/images/cheque_bg.png');
+            background-size: cover;
+            background-repeat: no-repeat;
+            position: relative;
+            font-family: Arial, sans-serif;
+        }
+
+        .field {
+            position: absolute;
+            font-weight: bold;
+            font-size: 16px;
+            color: #000;
+            white-space: nowrap;
+        }
+
+        .montant-chiffres { top: 37px;  font-size: 17px; right: 130px; }
+        .montant-lettres-ligne1, .montant-lettres-ligne2 {
+            left: 440px;
+            width: 650px;
+            font-size: 17px;
+            white-space: normal;
+        }
+        .montant-lettres-ligne1 { top: 110px; }
+        .montant-lettres-ligne2 { top: 145px; }
+        .nom { top: 180px; left: 200px; font-size: 17px; }
+        .cheque-nom { top: 352px; left: 110px; font-size: 17px; }
+        .nom-serie { top: 352px; left: 130px; font-size: 17px; }
+          
+        .ville { top: 218px; left: 500px; font-size: 17px; }
+        .date { top: 218px; left: 800px; font-size: 17px; }
+        .serie { top: 352px; left: 260px; font-size: 17px; }
+   
+    </style>
+</head>
+<body>
+<div class="cheque">
+    <div class="field montant-chiffres" th:text="${#numbers.formatDecimal(montant, 1, 'COMMA', 2, 'POINT')}"></div>
+    <div id="ligne1" class="field montant-lettres-ligne1" th:text="${montantLettre}"></div>
+    <div id="ligne2" class="field montant-lettres-ligne2"></div>
+
+    <!-- ✅ Correction ici : on affiche correctement le bénéficiaire -->
+    <div class="field nom" th:text="${cheque.beneficiaire}"></div>
+
+    <div class="field cheque-nom" th:text="${cheque.nomCheque}"></div>
+    <div class="field nom-serie" th:text="${cheque.nomSerie}"></div>
+    <div class="field" style="top: 330px; left: 450px; font-size: 15px;" th:text="${cheque.nomSerie}"></div>
+    <div class="field ville" th:text="${cheque.ville}"></div>
+    <div class="field date" th:text="${cheque.date}"></div>
+    <div class="field serie" th:text="${cheque.numeroSerie}"></div>
+
+    <div class="text-center mt-3" style="position:absolute; bottom: 10px; left: 50%; transform: translateX(-50%);">
+        <a th:href="@{'/cheque/modifier/' + ${cheque.id}}" class="btn btn-primary">Modifier ce chèque</a>
+    </div>
+</div>
+
+<script>
+    window.addEventListener('DOMContentLoaded', () => {
+        const maxCharsFr = 60;
+        const el1 = document.getElementById("ligne1");
+        const el2 = document.getElementById("ligne2");
+        const fullText = el1.textContent.trim();
+
+        if (fullText.length > maxCharsFr) {
+            const words = fullText.split(" ");
+            let line1 = "", line2 = "";
+
+            for (let word of words) {
+                if ((line1 + " " + word).trim().length <= maxCharsFr) {
+                    line1 += " " + word;
+                } else {
+                    line2 += " " + word;
+                }
+            }
+
+            el1.textContent = line1.trim();
+            el2.textContent = line2.trim();
+        } else {
+            el2.textContent = "";
+        }
+    });
+</script>
+</body>
+</html>
