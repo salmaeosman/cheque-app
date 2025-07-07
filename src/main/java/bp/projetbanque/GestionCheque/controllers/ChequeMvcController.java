@@ -9,7 +9,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
-import java.util.Optional;
 
 @Controller
 @RequestMapping("/cheque")
@@ -35,23 +34,17 @@ public class ChequeMvcController {
             @RequestParam String langue,
             @RequestParam String nomCheque,
             @RequestParam String nomSerie,
-            @RequestParam Long numeroSerie,
-            Model model
+            @RequestParam Long numeroSerie
     ) {
         String nomChequeUpper = nomCheque.toUpperCase();
         String nomSerieUpper = nomSerie.toUpperCase();
 
-        if (chequeRepository.findByNomChequeAndNomSerieAndNumeroSerie(
-                nomChequeUpper, nomSerieUpper, numeroSerie).isPresent()) {
-            model.addAttribute("cheque", new Cheque());
-            model.addAttribute("erreur", "Une combinaison identique de nom de chèque, nom de série et numéro de série existe déjà.");
-            return "formulaire";
+        if (chequeRepository.findByNomChequeAndNomSerieAndNumeroSerie(nomChequeUpper, nomSerieUpper, numeroSerie).isPresent()) {
+            return "redirect:/cheque/formulaire?erreur=existedeja";
         }
 
         if (beneficiaire == null || beneficiaire.isBlank()) {
-            model.addAttribute("cheque", new Cheque());
-            model.addAttribute("erreur", "Le nom du bénéficiaire est requis.");
-            return "formulaire";
+            return "redirect:/cheque/formulaire?erreur=beneficiaire";
         }
 
         Cheque cheque = new Cheque();
@@ -65,88 +58,13 @@ public class ChequeMvcController {
 
         chequeRepository.save(cheque);
 
-        model.addAttribute("cheque", cheque);
-        model.addAttribute("montant", montant);
-        model.addAttribute("montantLettre", montantService.convertirMontant(montant, langue));
-        model.addAttribute("montantLettreAr", montantService.convertirMontant(montant, "ar"));
-
-        return "cheque";
-    }
-
-    @GetMapping("/modifier/{id}")
-    public String modifierForm(@PathVariable Long id, Model model) {
-        Cheque cheque = chequeRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Chèque introuvable"));
-        model.addAttribute("cheque", cheque);
-        return "modifierCheque";
-    }
-
-    @PostMapping("/modifier")
-    public String modifierCheque(@ModelAttribute Cheque cheque, Model model) {
-        Optional<Cheque> optionalOriginal = chequeRepository.findById(cheque.getId());
-        if (optionalOriginal.isEmpty()) {
-            model.addAttribute("erreur", "Chèque introuvable.");
-            return "modifierCheque";
-        }
-
-        Cheque original = optionalOriginal.get();
-
-        if (cheque.getDate() != null && cheque.getDate().isBefore(LocalDate.now())) {
-            model.addAttribute("cheque", original);
-            model.addAttribute("erreur", "Impossible de choisir une date passée.");
-            return "modifierCheque";
-        }
-
-        String newNomCheque = cheque.getNomCheque() != null ? cheque.getNomCheque().toUpperCase() : original.getNomCheque();
-        String newNomSerie = cheque.getNomSerie() != null ? cheque.getNomSerie().toUpperCase() : original.getNomSerie();
-        Long newNumeroSerie = cheque.getNumeroSerie() != null ? cheque.getNumeroSerie() : original.getNumeroSerie();
-
-        if (!newNomCheque.equals(original.getNomCheque()) ||
-            !newNomSerie.equals(original.getNomSerie()) ||
-            !newNumeroSerie.equals(original.getNumeroSerie())) {
-
-            boolean exists = chequeRepository
-                    .findByNomChequeAndNomSerieAndNumeroSerie(newNomCheque, newNomSerie, newNumeroSerie)
-                    .isPresent();
-
-            if (exists) {
-                model.addAttribute("cheque", original);
-                model.addAttribute("erreur", "Cette combinaison existe déjà.");
-                return "modifierCheque";
-            }
-        }
-
-        if (cheque.getMontant() > 0) {
-            original.setMontant(cheque.getMontant());
-        }
-        if (cheque.getVille() != null && !cheque.getVille().isBlank()) {
-            original.setVille(cheque.getVille());
-        }
-        if (cheque.getDate() != null) {
-            original.setDate(cheque.getDate());
-        }
-
-        original.setNomCheque(newNomCheque);
-        original.setNomSerie(newNomSerie);
-        original.setNumeroSerie(newNumeroSerie);
-
-        if (cheque.getBeneficiaire() != null && !cheque.getBeneficiaire().isBlank()) {
-            original.setBeneficiaire(cheque.getBeneficiaire().toUpperCase());
-        }
-
-        chequeRepository.save(original);
-        return "redirect:/cheque/afficher/" + original.getId();
+        return "redirect:/cheque/afficher/" + cheque.getId();
     }
 
     @GetMapping("/afficher/{id}")
     public String afficherCheque(@PathVariable Long id, Model model) {
         Cheque cheque = chequeRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Chèque introuvable"));
-
-        model.addAttribute("cheque", cheque);
-        model.addAttribute("montant", cheque.getMontant());
-        model.addAttribute("montantLettre", montantService.convertirMontant(cheque.getMontant(), "fr"));
-        model.addAttribute("montantLettreAr", montantService.convertirMontant(cheque.getMontant(), "ar"));
 
         if (cheque.getNomCheque() == null ||
             cheque.getNomSerie() == null ||
@@ -155,10 +73,13 @@ public class ChequeMvcController {
             cheque.getDate() == null ||
             cheque.getBeneficiaire() == null) {
 
-            model.addAttribute("cheque", cheque);
-            model.addAttribute("erreur", "Le chèque est incomplet, impossible d'imprimer.");
-            return "modifierCheque";
+            return "redirect:/cheque/formulaire?erreur=incomplet";
         }
+
+        model.addAttribute("cheque", cheque);
+        model.addAttribute("montant", cheque.getMontant());
+        model.addAttribute("montantLettre", montantService.convertirMontant(cheque.getMontant(), "fr"));
+        model.addAttribute("montantLettreAr", montantService.convertirMontant(cheque.getMontant(), "ar"));
 
         return "cheque";
     }
