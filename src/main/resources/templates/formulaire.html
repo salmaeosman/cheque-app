@@ -23,47 +23,14 @@
       font-size: 0.8rem;
     }
 
-    .beneficiaire {
-      top: 30%;
-      left: 10%;
-      width: 40%;
-    }
+    .beneficiaire { top: 36%; left: 15%; width: 40%; }
+    .montant { top: 4%; right: 8%; width: 20%; }
+    .ville { top: 45%; left: 45%; width: 20%; }
+    .nomCheque { top: 75%; left: 9%; width: 4.5%; }
+    .nomSerie { top: 75%; left: 16%; width: 4.5%; }
+    .numeroSerie { top: 75%; left: 23%; width: 15%; }
 
-    .montant {
-      top: 10%;
-      right: 5%;
-      width: 20%;
-    }
-
-    .ville {
-      top: 45%;
-      left: 10%;
-      width: 20%;
-    }
-
-    .nomCheque {
-      top: 70%;
-      left: 10%;
-      width: 20%;
-    }
-
-    .nomSerie {
-      top: 70%;
-      left: 35%;
-      width: 20%;
-    }
-
-    .numeroSerie {
-      top: 70%;
-      left: 60%;
-      width: 15%;
-    }
-
-    .langue {
-      top: 80%;
-      left: 10%;
-      width: 20%;
-    }
+    .date-cheque { top: 55%; left: 10%; width: 25%; } /* ✅ POSITION du champ date */
 
     .submit-btn {
       margin-top: 20px;
@@ -76,28 +43,89 @@
       padding: 0.25rem 0.5rem;
       font-size: 0.85rem;
     }
+
+    .language-selection {
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .language-selection label {
+      margin-right: 15px;
+      font-weight: bold;
+    }
+
+    .langue-hidden {
+      display: none;
+    }
   </style>
 </head>
 <body class="container mt-5">
   <h2 class="mb-4 text-center">Formulaire de chèque</h2>
 
-  <form th:action="@{/cheque/enregistrer}" method="post">
+  <!-- Choix de langue en haut -->
+  <div class="language-selection">
+    <label>Langue :</label>
+    <label><input type="radio" name="langue" value="fr" onclick="enableFields()"> Français</label>
+    <label><input type="radio" name="langue" value="ar" onclick="enableFields()"> Arabe</label>
+  </div>
+
+  <form th:action="@{/cheque/enregistrer}" method="post" id="chequeForm">
     <div class="cheque-container">
-      <input type="text" name="beneficiaire" class="form-control field beneficiaire" placeholder="Nom du bénéficiaire" required>
-      <input type="number" step="0.01" name="montant" class="form-control field montant" placeholder="Montant" required>
-      <input type="text" name="ville" class="form-control field ville" value="Oujda" required>
-      <input type="text" name="nomCheque" class="form-control field nomCheque" placeholder="Nom du chèque" required>
-      <input type="text" name="nomSerie" class="form-control field nomSerie" placeholder="Nom de série" required>
-      <input type="number" name="numeroSerie" class="form-control field numeroSerie" placeholder="Numéro de série" required>
-      <select name="langue" class="form-select field langue" required>
-        <option value="fr">Français</option>
-        <option value="ar">Arabe</option>
-      </select>
+      <input type="text" name="beneficiaire" id="beneficiaire" class="form-control field beneficiaire" placeholder="Nom du bénéficiaire" required disabled>
+      <input type="number" step="0.01" name="montant" id="montant" class="form-control field montant" placeholder="Montant" required disabled>
+      <input type="text" name="ville" id="ville" class="form-control field ville" value="Oujda" required disabled>
+      <input type="text" name="nomCheque" id="nomCheque" class="form-control field nomCheque" placeholder="Nom du chèque" required disabled>
+      <input type="text" name="nomSerie" id="nomSerie" class="form-control field nomSerie" placeholder="Nom de série" required disabled>
+      <input type="number" name="numeroSerie" id="numeroSerie" class="form-control field numeroSerie" placeholder="Numéro de série" required disabled>
+
+      <!-- ✅ Champ date ajouté -->
+      <input type="date" name="date" id="date" class="form-control field date-cheque" required disabled>
+
+      <!-- Langue cachée -->
+      <input type="hidden" name="langue" id="langueHidden">
     </div>
 
     <div class="submit-btn">
-      <button type="submit" class="btn btn-success">Enregistrer le chèque</button>
+      <button type="submit" class="btn btn-success" id="submitBtn" disabled>Enregistrer le chèque</button>
     </div>
   </form>
+
+  <script>
+    function enableFields() {
+      const selectedLang = document.querySelector('input[name="langue"]:checked');
+      if (!selectedLang) return;
+
+      document.getElementById('langueHidden').value = selectedLang.value;
+
+      const fields = document.querySelectorAll('#chequeForm input[type="text"], #chequeForm input[type="number"], #chequeForm input[type="date"]');
+      fields.forEach(field => field.disabled = false);
+
+      checkFormCompletion();
+    }
+
+    function checkFormCompletion() {
+      const inputs = document.querySelectorAll('#chequeForm input[type="text"], #chequeForm input[type="number"], #chequeForm input[type="date"]');
+      const allFilled = Array.from(inputs).every(input => input.value.trim() !== "");
+      document.getElementById('submitBtn').disabled = !allFilled;
+    }
+
+    // ✅ Remplir automatiquement la date avec aujourd'hui
+    function setTodayDate() {
+      const today = new Date();
+      const yyyy = today.getFullYear();
+      const mm = String(today.getMonth() + 1).padStart(2, '0');
+      const dd = String(today.getDate()).padStart(2, '0');
+      document.getElementById('date').value = `${yyyy}-${mm}-${dd}`;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      setTodayDate();
+
+      const inputs = document.querySelectorAll('#chequeForm input[type="text"], #chequeForm input[type="number"], #chequeForm input[type="date"]');
+      inputs.forEach(input => {
+        input.addEventListener('input', checkFormCompletion);
+      });
+    });
+  </script>
 </body>
 </html>
