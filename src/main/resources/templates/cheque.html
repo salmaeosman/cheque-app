@@ -1,96 +1,107 @@
 <!DOCTYPE html>
 <html lang="fr" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
-    <title>Chèque</title>
-    <style>
-        .cheque {
-            width: 1000px;
-            height: 450px;
-            margin: auto;
-            background-image: url('/images/cheque_bg.png');
-            background-size: cover;
-            background-repeat: no-repeat;
-            position: relative;
-            font-family: Arial, sans-serif;
-        }
+  <meta charset="UTF-8">
+  <title>Chèque</title>
+  <style>
+    .cheque {
+      width: 1000px;
+      height: 450px;
+      margin: auto;
+      background-image: url('/images/cheque_bg.png');
+      background-size: cover;
+      background-repeat: no-repeat;
+      position: relative;
+      font-family: Arial, sans-serif;
+    }
 
-        .field {
-            position: absolute;
-            font-weight: bold;
-            font-size: 16px;
-            color: #000;
-            white-space: nowrap;
-        }
+    .field {
+      position: absolute;
+      font-weight: bold;
+      font-size: 16px;
+      color: #000;
+      white-space: nowrap;
+    }
 
+    .montant-chiffres {
+      top: 37px;
+      font-size: 17px;
+      right: 100px;
+    }
+    .montant-lettres-ligne1 {
+      top: 110px;
+      left: 440px;
+      width: 650px;
+      font-size: 17px;
+      white-space: normal;
+    }
+    /* On élargit la zone de la deuxième ligne */
+    .montant-lettres-ligne2 {
+      top: 145px;
+      left: 60px;
+      /* soit ajustez width, soit utilisez left+right pour une zone fluide */
+      right: 60px;
+      /* width: 880px;  <-- si vous préférez fixe */
+      font-size: 17px;
+      white-space: normal;
+    }
 
-        .montant-chiffres { top: 37px;  font-size: 17px; right: 100px; }
-.montant-lettres-ligne1 {
-    top: 110px; /* descend un peu plus */
-    left: 440px;
-    width: 650px;
-    font-size: 17px;
-    white-space: normal;
-}
-
-.montant-lettres-ligne2 {
-    top: 145px; /* descend en-dessous de la ligne 1 */
-    left: 60px;
-    width: 650px;
-    font-size: 17px;
-    white-space: normal;
-}
-        .nom { top: 180px; left: 140px; font-size: 17px; }
-        .cheque-nom { top: 352px; left: 110px; font-size: 17px; }
-        .nom-serie { top: 352px; left: 190px; font-size: 17px; }
-          
-        .ville { top: 218px; left: 540px; font-size: 17px; }
-        .date { top: 218px; left: 820px; font-size: 17px; }
-        .serie { top: 352px; left: 260px; font-size: 17px; }
-    </style>
+    .nom { top: 180px; left: 140px; font-size: 17px; }
+    .cheque-nom { top: 352px; left: 110px; font-size: 17px; }
+    .nom-serie { top: 352px; left: 190px; font-size: 17px; }
+    .ville { top: 218px; left: 540px; font-size: 17px; }
+    .date  { top: 218px; left: 820px; font-size: 17px; }
+    .serie { top: 352px; left: 260px; font-size: 17px; }
+  </style>
 </head>
 <body>
-<div class="cheque">
-    <div class="field montant-chiffres" th:text="${#numbers.formatDecimal(montant, 1, 'COMMA', 2, 'POINT')}"></div>
-
-    <div id="ligne1" class="field montant-lettres-ligne1" th:text="${montantLettre}"></div>
+  <div class="cheque">
+    <div class="field montant-chiffres"
+         th:text="${#numbers.formatDecimal(montant, 1, 'COMMA', 2, 'POINT')}"></div>
+    <div id="ligne1" class="field montant-lettres-ligne1"
+         th:text="${montantLettre}"></div>
     <div id="ligne2" class="field montant-lettres-ligne2"></div>
 
-    <div class="field nom" th:text="${cheque.beneficiaire}"></div>
+    <div class="field nom"        th:text="${cheque.beneficiaire}"></div>
     <div class="field cheque-nom" th:text="${cheque.nomCheque}"></div>
-    <div class="field nom-serie" th:text="${cheque.nomSerie}"></div>
-    <div class="field ville" th:text="${cheque.ville}"></div>
-    <div class="field date" th:text="${cheque.date}"></div>
-    <div class="field serie" th:text="${cheque.numeroSerie}"></div>
+    <div class="field nom-serie"  th:text="${cheque.nomSerie}"></div>
+    <div class="field ville"      th:text="${cheque.ville}"></div>
+    <div class="field date"       th:text="${cheque.date}"></div>
+    <div class="field serie"      th:text="${cheque.numeroSerie}"></div>
+  </div>
 
-
-</div>
-
-<script>
+  <script>
     window.addEventListener('DOMContentLoaded', () => {
-        const maxCharsFr = 60;
-        const el1 = document.getElementById("ligne1");
-        const el2 = document.getElementById("ligne2");
-        const fullText = el1.textContent.trim();
+      const maxChars = 60;
+      const el1 = document.getElementById('ligne1');
+      const el2 = document.getElementById('ligne2');
+      const full = el1.textContent.trim();
 
-        if (fullText.length > maxCharsFr) {
-            const words = fullText.split(" ");
-            let line1 = "", line2 = "";
+      const parts = full.match(/^(.*?)(\s+et\s+.+centime?s?)$/i);
+      const base    = parts ? parts[1].trim() : full;
+      const centTxt = parts ? parts[2].trim() : '';
 
-            for (let word of words) {
-                if ((line1 + " " + word).trim().length <= maxCharsFr) {
-                    line1 += " " + word;
-                } else {
-                    line2 += " " + word;
-                }
-            }
-
-            el1.textContent = line1.trim();
-            el2.textContent = line2.trim();
+      // on construit la première ligne
+      const mots = base.split(/\s+/);
+      let l1 = '', reste = [];
+      mots.forEach(m => {
+        if ((l1 + ' ' + m).trim().length <= maxChars) {
+          l1 += ' ' + m;
         } else {
-            el2.textContent = "";
+          reste.push(m);
         }
+      });
+      l1 = l1.trim();
+
+      // tout le reste (mots + centimes) va sur la deuxième ligne
+      let l2 = reste.join(' ');
+      if (centTxt) {
+        l2 = (l2 + ' ' + centTxt).trim();
+      }
+
+      el1.textContent = l1;
+      el2.textContent = l2;
     });
-</script>
+  </script>
 </body>
 </html>

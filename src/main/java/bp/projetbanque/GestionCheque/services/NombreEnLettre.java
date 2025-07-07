@@ -1,5 +1,8 @@
 package bp.projetbanque.GestionCheque.services;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class NombreEnLettre {
 
     private static final String[] UNITS = {
@@ -13,75 +16,124 @@ public class NombreEnLettre {
         "soixante", "quatre-vingt", "quatre-vingt"
     };
 
+    /**
+     * Convertit un montant (≤ 2 000 000 000) en texte (dirhams + centimes),
+     * avec "et" uniquement entre dirhams et centimes.
+     */
     public static String convertir(double montant) {
-        int entier = (int) montant;
+        if (montant < 0) {
+            throw new IllegalArgumentException("Le montant doit être positif.");
+        }
+        if (montant > 2_000_000_000.0) {
+            throw new IllegalArgumentException("Le montant ne doit pas dépasser 2 000 000 000.");
+        }
+
+        long entier = (long) montant;
         int centimes = (int) Math.round((montant - entier) * 100);
+        StringBuilder texte = new StringBuilder();
 
-        String texte = "";
-
+        // Partie dirhams
         if (entier > 0) {
-            texte += convertirNombre(entier) + " dirhams";
+            texte.append(convertirNombre(entier))
+                 .append(entier > 1 ? " dirhams" : " dirham");
         }
 
+        // Partie centimes : "et" uniquement ici
         if (centimes > 0) {
-            if (!texte.isEmpty()) {
-                texte += " et ";
+            if (texte.length() > 0) {
+                texte.append(" et ");
             }
-            texte += convertirNombre(centimes) + " centimes";
+            texte.append(convertirNombre(centimes))
+                 .append(centimes > 1 ? " centimes" : " centime");
         }
 
-        if (texte.isEmpty()) {
-            texte = "zéro dirham";
+        if (texte.length() == 0) {
+            texte.append("zéro dirham");
         }
 
-        return texte;
+        return texte.toString()
+                    .replaceAll("\\s+", " ")
+                    .trim();
     }
 
+    /**
+     * Convertit un entier [0..2 000 000 000] en toutes lettres,
+     * supporte milliards / millions / milliers / centaines / dizaines.
+     */
+    private static String convertirNombre(long n) {
+        if (n == 0) {
+            return "zéro";
+        }
+        List<String> parts = new ArrayList<>();
 
-    private static String convertirNombre(int n) {
-        if (n == 0) return "zéro";
-
-        StringBuilder sb = new StringBuilder();
-
-        if (n >= 1_000_000) {
-            int millions = n / 1_000_000;
-            sb.append(convertirNombre(millions)).append(" million");
-            if (millions > 1) sb.append("s");
-            n %= 1_000_000;
-            if (n > 0) sb.append(" ");
+        // Milliards
+        if (n >= 1_000_000_000L) {
+            long milliards = n / 1_000_000_000L;
+            parts.add(convertirNombre(milliards) + (milliards > 1 ? " milliards" : " milliard"));
+            n %= 1_000_000_000L;
         }
 
-        if (n >= 1000) {
-            int milliers = n / 1000;
-            if (milliers > 1) sb.append(convertirNombre(milliers)).append(" ");
-            sb.append("mille");
-            n %= 1000;
-            if (n > 0) sb.append(" ");
+        // Millions
+        if (n >= 1_000_000L) {
+            long millions = n / 1_000_000L;
+            parts.add(convertirNombre(millions) + (millions > 1 ? " millions" : " million"));
+            n %= 1_000_000L;
         }
 
-        if (n >= 100) {
-            int centaines = n / 100;
-            if (centaines > 1) sb.append(UNITS[centaines]).append(" ");
-            sb.append("cent");
-            n %= 100;
-            if (n > 0) sb.append(" ");
-        }
-
-        if (n >= 20) {
-            int d = n / 10;
-            int u = n % 10;
-            sb.append(TENS[d]);
-            if (d == 7 || d == 9) {
-                sb.append("-").append(UNITS[10 + u]);
-            } else if (u == 1 && d != 8) {
-                sb.append(" et un");
-            } else if (u > 0) {
-                sb.append("-").append(UNITS[u]);
+        // Milliers
+        if (n >= 1000L) {
+            long milliers = n / 1000L;
+            if (milliers > 1) {
+                parts.add(convertirNombre(milliers) + " mille");
+            } else {
+                parts.add("mille");
             }
-        } else if (n > 0) {
-            sb.append(UNITS[n]);
+            n %= 1000L;
         }
 
-        return sb.toString().trim();
+        // Centaines, dizaines et unités
+        if (n > 0) {
+            int rem = (int) n;
+            int centaines = rem / 100;
+            int reste = rem % 100;
+            if (centaines > 0) {
+                parts.add((centaines > 1 ? UNITS[centaines] + " cent" : "cent"));
+            }
+            if (reste > 0) {
+                parts.add(convertTwoDigits(reste));
+            }
+        }
+
+        return String.join(" ", parts);
+    }
+
+    /**
+     * Gère les nombres de 1 à 99, sans "et" interne, toujours avec hyphens.
+     */
+    private static String convertTwoDigits(int n) {
+        if (n < 20) {
+            return UNITS[n];
+        }
+        int tens = n / 10;
+        int unit = n % 10;
+        String tensWord = TENS[tens];
+        if (tens == 7 || tens == 9) {
+            // 70-79, 90-99
+            return tensWord + "-" + UNITS[10 + unit];
+        } else if (unit > 0) {
+            return tensWord + "-" + UNITS[unit];
+        } else {
+            return tensWord;
+        }
+    }
+
+    /**
+     * Petit test rapide en console
+     */
+    public static void main(String[] args) {
+        double[] tests = {109099.89, 1999999999.98};
+        for (double t : tests) {
+            System.out.println(t + " → " + convertir(t));
+        }
     }
 }
