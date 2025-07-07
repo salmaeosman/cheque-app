@@ -17,12 +17,26 @@ public class NombreEnLettre {
         int entier = (int) montant;
         int centimes = (int) Math.round((montant - entier) * 100);
 
-        String texteEntier = convertirNombre(entier);
-        String texteCentimes = centimes > 0 ? convertirNombre(centimes) : "zéro";
+        String texte = "";
 
-        return texteEntier + " dirhams" +
-               (centimes > 0 ? " et " + texteCentimes + " centimes" : "");
+        if (entier > 0) {
+            texte += convertirNombre(entier) + " dirhams";
+        }
+
+        if (centimes > 0) {
+            if (!texte.isEmpty()) {
+                texte += " et ";
+            }
+            texte += convertirNombre(centimes) + " centimes";
+        }
+
+        if (texte.isEmpty()) {
+            texte = "zéro dirham";
+        }
+
+        return texte;
     }
+
 
     private static String convertirNombre(int n) {
         if (n == 0) return "zéro";

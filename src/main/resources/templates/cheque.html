@@ -24,21 +24,28 @@
         }
 
 
-        .montant-chiffres { top: 37px;  font-size: 17px; right: 130px; }
-        .montant-lettres-ligne1, .montant-lettres-ligne2 {
-            left: 440px;
-            width: 650px;
-            font-size: 17px;
-            white-space: normal;
-        }
-        .montant-lettres-ligne1 { top: 110px; }
-        .montant-lettres-ligne2 { top: 145px; }
-        .nom { top: 180px; left: 200px; font-size: 17px; }
+        .montant-chiffres { top: 37px;  font-size: 17px; right: 100px; }
+.montant-lettres-ligne1 {
+    top: 110px; /* descend un peu plus */
+    left: 440px;
+    width: 650px;
+    font-size: 17px;
+    white-space: normal;
+}
+
+.montant-lettres-ligne2 {
+    top: 145px; /* descend en-dessous de la ligne 1 */
+    left: 60px;
+    width: 650px;
+    font-size: 17px;
+    white-space: normal;
+}
+        .nom { top: 180px; left: 140px; font-size: 17px; }
         .cheque-nom { top: 352px; left: 110px; font-size: 17px; }
         .nom-serie { top: 352px; left: 190px; font-size: 17px; }
           
-        .ville { top: 218px; left: 500px; font-size: 17px; }
-        .date { top: 218px; left: 800px; font-size: 17px; }
+        .ville { top: 218px; left: 540px; font-size: 17px; }
+        .date { top: 218px; left: 820px; font-size: 17px; }
         .serie { top: 352px; left: 260px; font-size: 17px; }
     </style>
 </head>
@@ -56,9 +63,7 @@
     <div class="field date" th:text="${cheque.date}"></div>
     <div class="field serie" th:text="${cheque.numeroSerie}"></div>
 
-    <div class="text-center mt-3" style="position:absolute; bottom: 10px; left: 50%; transform: translateX(-50%);">
-        <a th:href="@{'/cheque/modifier/' + ${cheque.id}}" class="btn btn-primary">Modifier ce chèque</a>
-    </div>
+
 </div>
 
 <script>
