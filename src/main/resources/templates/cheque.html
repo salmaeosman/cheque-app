@@ -5,7 +5,7 @@
   <title>Chèque</title>
   <style>
     .cheque {
-      width: 1000px;
+      width: 1100px;
       height: 450px;
       margin: auto;
       background-image: url('/images/cheque_bg.png');
@@ -26,18 +26,18 @@
     .montant-chiffres {
       top: 37px;
       font-size: 17px;
-      right: 100px;
+      right: 150px;
     }
     .montant-lettres-ligne1 {
-      top: 110px;
-      left: 440px;
+      top: 115px;
+      left: 470px;
       width: 650px;
       font-size: 17px;
       white-space: normal;
     }
     /* On élargit la zone de la deuxième ligne */
     .montant-lettres-ligne2 {
-      top: 145px;
+      top: 153px;
       left: 60px;
       /* soit ajustez width, soit utilisez left+right pour une zone fluide */
       right: 60px;
@@ -46,14 +46,29 @@
       white-space: normal;
     }
 
-    .nom { top: 180px; left: 140px; font-size: 17px; }
-    .cheque-nom { top: 352px; left: 110px; font-size: 17px; }
-    .nom-serie { top: 352px; left: 190px; font-size: 17px; }
-    .ville { top: 218px; left: 540px; font-size: 17px; }
-    .date  { top: 218px; left: 820px; font-size: 17px; }
-    .serie { top: 352px; left: 260px; font-size: 17px; }
+    .nom { top: 190px; left: 140px; font-size: 17px; }
+    .cheque-nom { top: 370px; left: 110px; font-size: 17px; }
+    .nom-serie { top: 370px; left: 190px; font-size: 17px; }
+    .ville { top: 230px; left: 560px; font-size: 17px; }
+    .date  { top: 230px; left: 860px; font-size: 17px; }
+    .serie { top: 370px; left: 260px; font-size: 17px; }
   </style>
 </head>
+
+<!-- en bas de cheque.html, juste avant </body> -->
+<button 
+  type="button" 
+  onclick="window.print()" 
+  style="position: absolute; top: 500px; left: 670px; padding: 8px 12px; font-size: 14px;"
+>
+  Imprimer
+</button>
+</div> <!-- ta div.cheque existante -->
+</body>
+</html>
+
+
+
 <body>
   <div class="cheque">
     <div class="field montant-chiffres"
