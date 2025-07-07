@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<html lang="fr">
 <head>
   <meta charset="UTF-8">
   <title>Formulaire de chèque</title>
@@ -29,7 +29,7 @@
     .nomCheque { top: 75%; left: 9%; width: 4.5%; }
     .nomSerie { top: 75%; left: 16%; width: 4.5%; }
     .numeroSerie { top: 75%; left: 23%; width: 15%; }
-    .date-cheque { top: 45%; left: 72%; width: 20%; } /* ✅ POSITION du champ date */
+    .date-cheque { top: 45%; left: 72%; width: 20%; }
 
     .submit-btn {
       margin-top: 20px;
@@ -37,8 +37,7 @@
       justify-content: center;
     }
 
-    .form-control,
-    .form-select {
+    .form-control {
       padding: 0.25rem 0.5rem;
       font-size: 0.85rem;
     }
@@ -53,34 +52,54 @@
       font-weight: bold;
     }
 
-    .langue-hidden {
-      display: none;
+    .error-message {
+      position: absolute;
+      font-size: 0.7rem;
+      color: red;
     }
+
+    .error-beneficiaire { top: 43%; left: 13%; }
+    .error-nomCheque { top: 82%; left: 9%; }
+    .error-nomSerie { top: 82%; left: 16%; }
+    .error-numeroSerie { top: 82%; left: 23%; }
+    .error-montant { top: 11%; right: 8%; }
+    .error-ville { top: 52%; left: 45%; }
+    .error-date { top: 52%; left: 72%; }
   </style>
 </head>
 <body class="container mt-5">
   <h2 class="mb-4 text-center">Formulaire de chèque</h2>
 
-  <!-- Choix de langue en haut -->
   <div class="language-selection">
     <label>Langue :</label>
     <label><input type="radio" name="langue" value="fr" onclick="enableFields()"> Français</label>
     <label><input type="radio" name="langue" value="ar" onclick="enableFields()"> Arabe</label>
   </div>
 
-  <form th:action="@{/cheque/enregistrer}" method="post" id="chequeForm">
+  <form th:action="@{/cheque/enregistrer}" method="post" id="chequeForm" novalidate>
     <div class="cheque-container">
+
       <input type="number" step="0.01" name="montant" id="montant" class="form-control field montant" placeholder="Montant" required disabled>
-      <input type="text" name="beneficiaire" id="beneficiaire" class="form-control field beneficiaire" placeholder="Nom du bénéficiaire" required disabled>      
+      <div class="error-message error-montant" id="errorMontant"></div>
+
+      <input type="text" name="beneficiaire" id="beneficiaire" class="form-control field beneficiaire" placeholder="Nom du bénéficiaire" maxlength="50" required disabled>
+      <div class="error-message error-beneficiaire" id="errorBeneficiaire"></div>
+
       <input type="text" name="ville" id="ville" class="form-control field ville" value="Oujda" required disabled>
+      <div class="error-message error-ville" id="errorVille"></div>
+
       <input type="text" name="nomCheque" id="nomCheque" class="form-control field nomCheque" placeholder="Nom du chèque" required disabled>
+      <div class="error-message error-nomCheque" id="errorNomCheque"></div>
+
       <input type="text" name="nomSerie" id="nomSerie" class="form-control field nomSerie" placeholder="Nom de série" required disabled>
-      <input type="number" name="numeroSerie" id="numeroSerie" class="form-control field numeroSerie" placeholder="Numéro de série" required disabled>
+      <div class="error-message error-nomSerie" id="errorNomSerie"></div>
 
-      <!-- ✅ Champ date ajouté -->
+      <input type="text" name="numeroSerie" id="numeroSerie" class="form-control field numeroSerie" placeholder="Numéro de série" required disabled>
+      <div class="error-message error-numeroSerie" id="errorNumeroSerie"></div>
+
       <input type="date" name="date" id="date" class="form-control field date-cheque" required disabled>
+      <div class="error-message error-date" id="errorDate"></div>
 
-      <!-- Langue cachée -->
       <input type="hidden" name="langue" id="langueHidden">
     </div>
 
@@ -89,42 +108,101 @@
     </div>
   </form>
 
-  <script>
-    function enableFields() {
-      const selectedLang = document.querySelector('input[name="langue"]:checked');
-      if (!selectedLang) return;
+ <script>
+  const touchedFields = {};
 
-      document.getElementById('langueHidden').value = selectedLang.value;
+  function enableFields() {
+    const selectedLang = document.querySelector('input[name="langue"]:checked');
+    if (!selectedLang) return;
 
-      const fields = document.querySelectorAll('#chequeForm input[type="text"], #chequeForm input[type="number"], #chequeForm input[type="date"]');
-      fields.forEach(field => field.disabled = false);
+    document.getElementById('langueHidden').value = selectedLang.value;
 
-      checkFormCompletion();
+    const fields = document.querySelectorAll('#chequeForm input');
+    fields.forEach(field => {
+      if (field.type !== 'radio' && field.type !== 'hidden') {
+        field.disabled = false;
+      }
+    });
+
+    // Initialiser la date à aujourd'hui si vide
+    const dateInput = document.getElementById('date');
+    if (!dateInput.value) {
+      const today = new Date().toISOString().split('T')[0];
+      dateInput.value = today;
     }
 
-    function checkFormCompletion() {
-      const inputs = document.querySelectorAll('#chequeForm input[type="text"], #chequeForm input[type="number"], #chequeForm input[type="date"]');
-      const allFilled = Array.from(inputs).every(input => input.value.trim() !== "");
-      document.getElementById('submitBtn').disabled = !allFilled;
+    checkFormCompletion();
+  }
+
+  function isOnlyLetters(value) {
+    return /^[A-Za-zÀ-ÿ\s]+$/.test(value);
+  }
+
+  function isOnlyDigits(value) {
+    return /^[0-9]+$/.test(value);
+  }
+
+  function isPositiveNumber(value) {
+    return !isNaN(value) && Number(value) > 0;
+  }
+
+  function isValidDate(value) {
+    if (!value) return false;
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    const inputDate = new Date(value);
+    return inputDate >= today;
+  }
+
+  function validateField(fieldId, errorId, validator, errorMsg) {
+    const value = document.getElementById(fieldId).value.trim();
+    const errorDiv = document.getElementById(errorId);
+
+    if (!touchedFields[fieldId]) {
+      errorDiv.textContent = '';
+      return true;
     }
 
-    // ✅ Remplir automatiquement la date avec aujourd'hui
-    function setTodayDate() {
-      const today = new Date();
-      const yyyy = today.getFullYear();
-      const mm = String(today.getMonth() + 1).padStart(2, '0');
-      const dd = String(today.getDate()).padStart(2, '0');
-      document.getElementById('date').value = `${yyyy}-${mm}-${dd}`;
+    if (!validator(value)) {
+      errorDiv.textContent = errorMsg;
+      return false;
+    } else {
+      errorDiv.textContent = '';
+      return true;
     }
+  }
 
-    document.addEventListener('DOMContentLoaded', () => {
-      setTodayDate();
+  function checkFormCompletion() {
+    const validations = [
+      validateField('montant', 'errorMontant', isPositiveNumber, "Montant invalide"),
+      validateField('beneficiaire', 'errorBeneficiaire', isOnlyLetters, "Nom invalide"),
+      validateField('ville', 'errorVille', isOnlyLetters, "Ville invalide"),
+      validateField('nomCheque', 'errorNomCheque', isOnlyLetters, "Nom du chèque invalide"),
+      validateField('nomSerie', 'errorNomSerie', isOnlyLetters, "Nom de série invalide"),
+      validateField('numeroSerie', 'errorNumeroSerie', isOnlyDigits, "Numéro invalide"),
+      validateField('date', 'errorDate', isValidDate, "Date invalide ou passée")
+    ];
 
-      const inputs = document.querySelectorAll('#chequeForm input[type="text"], #chequeForm input[type="number"], #chequeForm input[type="date"]');
-      inputs.forEach(input => {
-        input.addEventListener('input', checkFormCompletion);
+    const allValid = validations.every(v => v === true);
+    document.getElementById('submitBtn').disabled = !allValid;
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const inputs = document.querySelectorAll('#chequeForm input[type="text"], #chequeForm input[type="number"], #chequeForm input[type="date"]');
+
+    inputs.forEach(input => {
+      const fieldId = input.id;
+      input.addEventListener('input', () => {
+        touchedFields[fieldId] = true;
+        checkFormCompletion();
       });
     });
-  </script>
+
+    // Initialiser la date par défaut à aujourd'hui même si non activé
+    const dateInput = document.getElementById('date');
+    const today = new Date().toISOString().split('T')[0];
+    dateInput.value = today;
+  });
+</script>
 </body>
 </html>

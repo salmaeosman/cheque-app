@@ -16,7 +16,7 @@ public class ChequeMvcController {
 
     @Autowired
     private ChequeRepository chequeRepository;
-
+ 
     @Autowired
     private MontantEnLettresService montantService;
 
@@ -34,7 +34,8 @@ public class ChequeMvcController {
             @RequestParam String langue,
             @RequestParam String nomCheque,
             @RequestParam String nomSerie,
-            @RequestParam Long numeroSerie
+            @RequestParam Long numeroSerie,
+            @RequestParam("date") String dateStr  // récupère la date du formulaire
     ) {
         String nomChequeUpper = nomCheque.toUpperCase();
         String nomSerieUpper = nomSerie.toUpperCase();
@@ -50,7 +51,11 @@ public class ChequeMvcController {
         Cheque cheque = new Cheque();
         cheque.setMontant(montant);
         cheque.setVille(ville);
-        cheque.setDate(LocalDate.now());
+
+        // ✅ Conversion de la date saisie (format yyyy-MM-dd)
+        LocalDate dateCheque = LocalDate.parse(dateStr);
+        cheque.setDate(dateCheque);
+
         cheque.setNomCheque(nomChequeUpper);
         cheque.setNomSerie(nomSerieUpper);
         cheque.setNumeroSerie(numeroSerie);
@@ -60,6 +65,7 @@ public class ChequeMvcController {
 
         return "redirect:/cheque/afficher/" + cheque.getId();
     }
+
 
     @GetMapping("/afficher/{id}")
     public String afficherCheque(@PathVariable Long id, Model model) {
