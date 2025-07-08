@@ -72,18 +72,20 @@ public class ChequeMvcController {
         Cheque cheque = chequeRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Chèque introuvable"));
 
+        // Vérification de complétude
         if (cheque.getNomCheque() == null ||
-                cheque.getNomSerie() == null ||
-                cheque.getNumeroSerie() == null ||
-                cheque.getVille() == null ||
-                cheque.getDate() == null ||
-                cheque.getBeneficiaire() == null) {
+            cheque.getNomSerie() == null ||
+            cheque.getNumeroSerie() == null ||
+            cheque.getVille() == null ||
+            cheque.getDate() == null ||
+            cheque.getBeneficiaire() == null) {
 
             return "redirect:/cheque/formulaire?erreur=incomplet";
         }
 
         model.addAttribute("cheque", cheque);
         model.addAttribute("montant", cheque.getMontant());
+        model.addAttribute("langue", langue); // 🔥 Important !
         model.addAttribute("montantLettre", montantService.convertirMontant(cheque.getMontant(), langue));
 
         return "cheque";
