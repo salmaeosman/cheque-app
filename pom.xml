@@ -6,11 +6,10 @@
 
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.example</groupId>
+    <groupId>bp.projetbanque</groupId>
     <artifactId>cheque-app</artifactId>
-    <version>1.0.0</version>
-    <name>Cheque App - Banque Populaire</name>
-    <packaging>jar</packaging>
+    <version>1.0</version>
+    <packaging>jar</packaging> <!-- Important -->
 
     <parent>
         <groupId>org.springframework.boot</groupId>

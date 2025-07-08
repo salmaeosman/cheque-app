@@ -19,6 +19,6 @@ public class NombreEnLettreTest {
     @Test
     public void testConversionZero() {
         String resultat = NombreEnLettre.convertir(0);
-        assertEquals("zéro dirhams", resultat);
+        assertEquals("zéro dirham", resultat);
     }
 }
