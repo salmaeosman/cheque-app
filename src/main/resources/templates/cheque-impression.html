@@ -8,7 +8,6 @@
       body {
         margin: 0;
       }
-
       .no-print {
         display: none;
       }
@@ -34,7 +33,6 @@
       page-break-inside: avoid;
     }
 
-      /* 3) Tous nos champs positionnés */
     .field {
       position: absolute;
       font-weight: bold;
@@ -45,24 +43,36 @@
 
     .montant-chiffres { top: 37px; right: 160px; font-size: 17px; }
 
-    /* Français */
     .montant-lettres-ligne1 {
       top: 120px; left: 480px;
       width: 650px; font-size: 17px;
       white-space: normal;
     }
+
     .montant-lettres-ligne2 {
       top: 155px; left: 60px; right: 60px;
       font-size: 17px; white-space: normal;
     }
 
-    /* Arabe RTL */
     .arabe-ligne {
       direction: rtl; text-align: right;
       font-size: 17px; white-space: normal;
     }
+
     .arabe-ligne1 { top: 120px; right: 125px; width: 880px; }
     .arabe-ligne2 { top: 158px; right: 50px;  width: 880px; }
+
+    .arabe-beneficiaire {
+      top: 190px;
+      right: 120px;
+      width: 880px;
+      direction: rtl;
+      text-align: right;
+      font-size: 17px;
+      position: absolute;
+      font-weight: bold;
+      color: #000;
+    }
 
     .nom        { top: 195px; left: 140px; font-size: 17px; }
     .cheque-nom { top: 371px; left: 110px; font-size: 17px; }
@@ -70,7 +80,6 @@
     .ville      { top: 230px; left: 545px; font-size: 17px; }
     .date       { top: 230px; left: 825px; font-size: 17px; }
     .serie      { top: 371px; left: 270px; font-size: 17px; }
-
   </style>
 </head>
 <body>
@@ -92,7 +101,10 @@
        th:class="'field ' + (${langue} == 'ar' ? 'arabe-ligne arabe-ligne2' : 'montant-lettres-ligne2')">
   </div>
 
-  <div class="field nom"        th:text="${cheque.beneficiaire}"></div>
+  <!-- ✅ Nom du bénéficiaire en arabe sous la ligne de montant -->
+  <div th:class="'field ' + (${langue} == 'ar' ? 'arabe-beneficiaire' : 'nom')"
+       th:text="${cheque.beneficiaire}"></div>
+
   <div class="field cheque-nom" th:text="${cheque.nomCheque}"></div>
   <div class="field nom-serie"  th:text="${cheque.nomSerie}"></div>
   <div class="field ville"      th:text="${cheque.ville}"></div>
