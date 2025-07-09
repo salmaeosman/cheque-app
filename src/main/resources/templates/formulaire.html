@@ -141,20 +141,8 @@
     return /^[0-9]+$/.test(value);
   }
 
-  function isNotEmpty(value) {
-    return value.trim() !== '';
-  }
-
   function isPositiveNumber(value) {
     return !isNaN(value) && Number(value) > 0;
-  }
-
-  function isValidDate(value) {
-    if (!value) return false;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const inputDate = new Date(value);
-    return inputDate >= today;
   }
 
   function validateField(fieldId, errorId, validator, errorMsg) {
@@ -163,7 +151,7 @@
 
     if (!touchedFields[fieldId]) {
       errorDiv.textContent = '';
-      return true;
+      return false;
     }
 
     if (!validator(value)) {
@@ -179,11 +167,9 @@
     const validations = [
       validateField('montant', 'errorMontant', isPositiveNumber, "Montant invalide"),
       validateField('beneficiaire', 'errorBeneficiaire', isOnlyLetters, "Nom invalide"),
-      validateField('ville', 'errorVille', isOnlyLetters, "Ville invalide"),
       validateField('nomCheque', 'errorNomCheque', isOnlyLetters, "Nom du chèque invalide"),
       validateField('nomSerie', 'errorNomSerie', isOnlyLetters, "Nom de série invalide"),
-      validateField('numeroSerie', 'errorNumeroSerie', isOnlyDigits, "Numéro invalide"),
-      validateField('date', 'errorDate', isValidDate, "Date invalide ou passée")
+      validateField('numeroSerie', 'errorNumeroSerie', isOnlyDigits, "Numéro invalide")
     ];
 
     const allValid = validations.every(v => v === true);
@@ -191,7 +177,7 @@
   }
 
   document.addEventListener('DOMContentLoaded', () => {
-    const inputs = document.querySelectorAll('#chequeForm input[type="text"], #chequeForm input[type="number"], #chequeForm input[type="date"]');
+    const inputs = document.querySelectorAll('#chequeForm input[type="text"], #chequeForm input[type="number"]');
 
     inputs.forEach(input => {
       const fieldId = input.id;
@@ -204,6 +190,9 @@
     const dateInput = document.getElementById('date');
     const today = new Date().toISOString().split('T')[0];
     dateInput.value = today;
+
+    touchedFields['ville'] = true;
+    touchedFields['date'] = true;
   });
 </script>
 </body>
