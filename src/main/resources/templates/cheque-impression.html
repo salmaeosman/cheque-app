@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Impression Chèque</title>
+  <style>
+    @media print {
+      body {
+        margin: 0;
+      }
+
+      .no-print {
+        display: none;
+      }
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: white;
+    }
+
+    .cheque {
+      width: 1100px;
+      height: 450px;
+      margin: 20px auto;
+      position: relative;
+      background-image: url('/images/cheque_bg.png');
+      background-size: cover;
+      background-repeat: no-repeat;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+      page-break-inside: avoid;
+    }
+
+    .field {
+      position: absolute;
+      font-weight: bold;
+      font-size: 14pt;
+      color: #000;
+      white-space: nowrap;
+    }
+
+    .montant-chiffres { top: 37px; right: 160px; }
+    .montant-lettres-ligne1 { top: 120px; left: 480px; width: 650px; white-space: normal; }
+    .montant-lettres-ligne2 { top: 155px; left: 60px; right: 60px; white-space: normal; }
+    .arabe-ligne { direction: rtl; text-align: right; white-space: normal; }
+    .arabe-ligne1 { top: 120px; right: 125px; width: 880px; }
+    .arabe-ligne2 { top: 158px; right: 50px; width: 880px; }
+    .nom { top: 195px; left: 140px; }
+    .cheque-nom { top: 371px; left: 110px; }
+    .nom-serie { top: 371px; left: 195px; }
+    .ville { top: 230px; left: 545px; }
+    .date  { top: 230px; left: 825px; }
+    .serie { top: 371px; left: 270px; }
+  </style>
+</head>
+<body>
+
+<div class="no-print" style="text-align:center; margin-top: 20px;">
+  <button onclick="window.print()">🖨️ Imprimer le chèque</button>
+</div>
+
+<div class="cheque">
+  <div class="field montant-chiffres"
+       th:text="${#numbers.formatDecimal(montant, 1, 'COMMA', 2, 'POINT')}"></div>
+
+  <div id="ligne1"
+       th:class="'field ' + (${langue} == 'ar' ? 'arabe-ligne arabe-ligne1' : 'montant-lettres-ligne1')"
+       th:text="${montantLettre}">
+  </div>
+
+  <div id="ligne2"
+       th:class="'field ' + (${langue} == 'ar' ? 'arabe-ligne arabe-ligne2' : 'montant-lettres-ligne2')">
+  </div>
+
+  <div class="field nom"        th:text="${cheque.beneficiaire}"></div>
+  <div class="field cheque-nom" th:text="${cheque.nomCheque}"></div>
+  <div class="field nom-serie"  th:text="${cheque.nomSerie}"></div>
+  <div class="field ville"      th:text="${cheque.ville}"></div>
+  <div class="field date"       th:text="${cheque.date}"></div>
+  <div class="field serie"      th:text="${cheque.numeroSerie}"></div>
+</div>
+
+<script>
+  window.addEventListener('DOMContentLoaded', () => {
+    const maxChars = 60;
+    const el1 = document.getElementById('ligne1');
+    const el2 = document.getElementById('ligne2');
+    const full = el1.textContent.trim();
+
+    const isArabic = window.location.href.includes("langue=ar");
+
+    const parts = isArabic
+      ? full.match(/^(.*?)(\s+و\s+.+سنتيم)?$/i)
+      : full.match(/^(.*?)(\s+et\s+.+centime?s?)$/i);
+
+    const base = parts ? parts[1].trim() : full;
+    const centTxt = parts && parts[2] ? parts[2].trim() : '';
+
+    const mots = base.split(/\s+/);
+    let l1 = '', reste = [];
+    mots.forEach(m => {
+      if ((l1 + ' ' + m).trim().length <= maxChars) {
+        l1 += ' ' + m;
+      } else {
+        reste.push(m);
+      }
+    });
+    l1 = l1.trim();
+
+    let l2 = reste.join(' ');
+    if (centTxt) {
+      l2 = (l2 + ' ' + centTxt).trim();
+    }
+
+    el1.textContent = l1;
+    el2.textContent = l2;
+  });
+</script>
+
+</body>
+</html>

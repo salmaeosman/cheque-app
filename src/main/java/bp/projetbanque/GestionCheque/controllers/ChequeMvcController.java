@@ -88,7 +88,21 @@ public class ChequeMvcController {
         model.addAttribute("langue", langue); // 🔥 Important !
         model.addAttribute("montantLettre", montantService.convertirMontant(cheque.getMontant(), langue));
 
-        return "cheque";
+        return "cheque-impression";
+    }
+    @GetMapping("/imprimer/{id}")
+    public String imprimerCheque(@PathVariable Long id,
+                                 @RequestParam(defaultValue = "fr") String langue,
+                                 Model model) {
+        Cheque cheque = chequeRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Chèque introuvable"));
+
+        model.addAttribute("cheque", cheque);
+        model.addAttribute("montant", cheque.getMontant());
+        model.addAttribute("langue", langue);
+        model.addAttribute("montantLettre", montantService.convertirMontant(cheque.getMontant(), langue));
+
+        return "cheque-impression";
     }
     
 }

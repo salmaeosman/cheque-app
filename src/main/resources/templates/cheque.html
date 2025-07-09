@@ -129,8 +129,9 @@
   </div>
 
   <!-- Bouton IMPRIMER -->
-  <button class="print-btn no-print" onclick="window.print()">Imprimer ce chèque</button>
-
+<a th:href="@{'/cheque/imprimer/' + ${cheque.id} + '?langue=' + ${langue}}" target="_blank">
+  🖨️ Imprimer ce chèque
+</a>
   <!-- 5) Découpage du texte montant en deux lignes + gestion centimes -->
   <script>
     window.addEventListener('DOMContentLoaded', () => {
