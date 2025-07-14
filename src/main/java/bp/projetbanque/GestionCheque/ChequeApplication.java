@@ -14,7 +14,7 @@ public class ChequeApplication {
 
         // Ouvrir le navigateur automatiquement après le démarrage
         try {
-            String url = "http://localhost:8103"; // ou le port que tu utilises
+            String url = "http://localhost:8103/cheque/formulaire"; // ou le port que tu utilises
             if (Desktop.isDesktopSupported()) {
                 Desktop.getDesktop().browse(new URI(url));
             } else {
