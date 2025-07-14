@@ -80,13 +80,39 @@
     .ville      { top: 230px; left: 545px; font-size: 17px; }
     .date       { top: 230px; left: 825px; font-size: 17px; }
     .serie      { top: 371px; left: 270px; font-size: 17px; }
+/* bouton d’impression */
+.no-print .print-btn {
+  position: fixed;               /* toujours visible, fixe */
+  bottom: 200px;                  /* à 20px du bas de la fenêtre */
+  left: 50%;                     /* milieu horizontal */
+  transform: translateX(-50%);   /* ajuste pour centrer le bouton */
+  padding: 12px 30px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  background: linear-gradient(45deg, #28a745, #218838);
+  color: #fff;
+  border: none;
+  border-radius: 50px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  cursor: pointer;
+  transition: background 0.2s ease;
+  text-transform: uppercase;
+  z-index: 1000;
+}
+
+.no-print .print-btn:hover {
+  background: linear-gradient(45deg, #218838, #28a745);
+}
+
   </style>
 </head>
 <body>
 
-<div class="no-print" style="text-align:center; margin-top: 20px;">
-  <button onclick="window.print()">🖨️ Imprimer le chèque</button>
-</div>
+  <div class="no-print" style="text-align:center; margin: 20px 0;">
+    <button class="print-btn" onclick="window.print()">
+      🖨 Imprimer le chèque
+    </button>
+  </div>
 
 <div class="cheque">
   <div class="field montant-chiffres"
