@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Modifier le chèque</title>
+  <style>
+    @page { size: landscape; margin: 0; }
+    @media print {
+      html, body { margin: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .no-print { display: none !important; }
+      .cheque { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+    }
+
+    body {
+      margin: 0; padding: 0; font-family: Arial, sans-serif;
+    }
+
+    .cheque {
+      width: 1100px; height: 450px; margin: 20px auto;
+      position: relative;
+      background-image: url('/images/cheque_bg.png');
+      background-size: cover; background-repeat: no-repeat;
+      -webkit-print-color-adjust: exact; print-color-adjust: exact;
+    }
+
+    .field {
+      position: absolute; font-weight: bold; font-size: 16px; color: #000;
+      background: rgba(255,255,255,0.7); border: 1px solid #ccc; padding: 2px;
+    }
+
+    /* Positions identiques à cheque2.html */
+    .montant-chiffres { top: 37px; right: 160px; font-size: 17px; width: 120px; }
+    .montant-lettres-ligne1 { top: 120px; left: 480px; width: 650px; font-size: 17px; }
+    .montant-lettres-ligne2 { top: 155px; left: 60px; right: 60px; font-size: 17px; }
+
+    .nom        { top: 195px; left: 140px; width: 250px; }
+    .cheque-nom { top: 371px; left: 110px; width: 120px; }
+    .nom-serie  { top: 371px; left: 195px; width: 120px; }
+    .ville      { top: 230px; left: 545px; width: 150px; }
+    .date       { top: 230px; left: 825px; width: 120px; }
+    .serie      { top: 371px; left: 270px; width: 120px; }
+
+    .btn-modifier {
+      position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%);
+      padding: 12px 24px; font-size: 18px; background-color: #007bff;
+      color: #fff; border: none; border-radius: 4px; cursor: pointer; z-index: 9999;
+    }
+    .btn-modifier:hover { background-color: #0069d9; }
+  </style>
+</head>
+<body>
+
+<form th:action="@{/cheque/modifier}" th:object="${cheque}" method="post">
+  <!-- Champ caché pour l’ID -->
+  <input type="hidden" th:field="*{id}"/>
+
+  <div class="cheque">
+    <!-- Montant en chiffres -->
+    <input type="number" step="0.01"
+           class="field montant-chiffres"
+           th:field="*{montant}"/>
+
+    <!-- Montant en lettres (non éditable) -->
+    <input type="text"
+           class="field montant-lettres-ligne1"
+           th:value="${montantLettre}" readonly/>
+    <div id="ligne2"
+         class="field montant-lettres-ligne2"></div>
+
+    <!-- Bénéficiaire -->
+    <input type="text"
+           class="field nom"
+           th:field="*{beneficiaire}"/>
+
+    <!-- Nom du chèque -->
+    <input type="text"
+           class="field cheque-nom"
+           th:field="*{nomCheque}"/>
+
+    <!-- Nom de la série -->
+    <input type="text"
+           class="field nom-serie"
+           th:field="*{nomSerie}"/>
+
+    <!-- Ville -->
+    <input type="text"
+           class="field ville"
+           th:field="*{ville}"/>
+
+    <!-- Date -->
+    <input type="date"
+           class="field date"
+           th:field="*{date}"/>
+
+    <!-- Numéro de série -->
+    <input type="number"
+           class="field serie"
+           th:field="*{numeroSerie}"/>
+  </div>
+
+
+  <!-- À placer juste avant la fermeture de la balise </form> de modifier-cheque.html -->
+<div class="actions no-print" style="display: flex; justify-content: center; gap: 20px; margin-top: 20px;">
+  <!-- Bouton Enregistrer -->
+  <button type="submit"
+          style="
+            background-color: #28a745;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            padding: 12px 24px;
+            font-size: 16px;
+            cursor: pointer;
+          ">
+    💾 Enregistrer
+  </button>
+
+  <!-- Bouton Imprimer -->
+  <a th:href="@{'/cheque/imprimer/' + ${cheque.id} + '?langue=' + ${langue}}"
+     target="_blank"
+     style="
+       display: inline-block;
+       background-color: #28a745;
+       color: #fff;
+       text-decoration: none;
+       border: none;
+       border-radius: 4px;
+       padding: 12px 24px;
+       font-size: 16px;
+       cursor: pointer;
+     ">
+    🖨️ Imprimer
+  </a>
+</div>
+  
+</form>
+
+<script th:inline="javascript">
+  /*<![CDATA[*/
+  window.addEventListener('DOMContentLoaded', () => {
+    const maxChars = 60;
+    const el1 = document.querySelector('.montant-lettres-ligne1');
+    const el2 = document.getElementById('ligne2');
+    const full = el1.value.trim();
+    const parts = full.match(/^(.*?)(\s+et\s+.+centime?s?)$/i) || [];
+    const base = parts[1] || full;
+    const centTxt = parts[2] || '';
+    const words = base.split(/\s+/);
+    let l1 = '', rest = [];
+    for (let w of words) {
+      if ((l1 + ' ' + w).trim().length <= maxChars) l1 += ' ' + w;
+      else rest.push(w);
+    }
+    el1.value = l1.trim();
+    let l2 = rest.join(' ');
+    if (centTxt) l2 += ' ' + centTxt;
+    el2.textContent = l2.trim();
+  });
+  /*]]>*/
+</script>
+
+</body>
+</html>
