@@ -64,6 +64,11 @@ public class ChequeMvcController {
         // Redirection avec paramètre de langue pour réaffichage correct
         return "redirect:/cheque/afficher/" + cheque.getId() + "?langue=" + langue;
     }
+    @PostMapping("/modifier")
+    public String modifierCheque(@ModelAttribute Cheque cheque) {
+        chequeRepository.save(cheque);
+        return "redirect:/cheque/afficher/" + cheque.getId() + "?langue=fr";
+    }
 
     @GetMapping("/afficher/{id}")
     public String afficherCheque(@PathVariable Long id,
@@ -102,7 +107,7 @@ public class ChequeMvcController {
         model.addAttribute("langue", langue);
         model.addAttribute("montantLettre", montantService.convertirMontant(cheque.getMontant(), langue));
 
-        return "cheque-impression";
+        return "cheque-modification";
     }
     
 }
