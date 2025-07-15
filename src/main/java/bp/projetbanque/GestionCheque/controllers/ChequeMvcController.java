@@ -104,35 +104,5 @@ public class ChequeMvcController {
 
         return "cheque-impression";
     }
-    @GetMapping("/afficher-par-numero/{numeroSerie}")
-    public String afficherParNumero(@PathVariable Long numeroSerie,
-                                    @RequestParam(defaultValue = "fr") String langue,
-                                    Model model) {
-        Cheque cheque = chequeRepository.findByNumeroSerie(numeroSerie)
-                .orElseThrow(() -> new RuntimeException("Chèque introuvable"));
-
-        model.addAttribute("cheque", cheque);
-        model.addAttribute("montant", cheque.getMontant());
-        model.addAttribute("langue", langue);
-        model.addAttribute("montantLettre", montantService.convertirMontant(cheque.getMontant(), langue));
-
-        return "cheque-impression";
-    }
-    @GetMapping("/cheque2/{id}")
-    public String afficherCheque2(@PathVariable Long id,
-                                   @RequestParam(defaultValue = "fr") String langue,
-                                   Model model) {
-        Cheque cheque = chequeRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Chèque introuvable"));
-
-        model.addAttribute("cheque", cheque);
-        model.addAttribute("montant", cheque.getMontant());
-        model.addAttribute("langue", langue);
-        model.addAttribute("montantLettre", montantService.convertirMontant(cheque.getMontant(), langue));
-
-        return "cheque2";
-    }
-
-
     
 }
