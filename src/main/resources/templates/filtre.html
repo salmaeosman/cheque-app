@@ -1,69 +1,85 @@
 <!DOCTYPE html>
 <html lang="fr" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
-    <title>Recherche de chèque</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <meta charset="UTF-8">
+  <title>Recherche de chèque</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body class="container mt-5">
 
-    <h2 class="mb-4">Recherche dans la base des chèques</h2>
+  <h2 class="mb-4">Recherche dans la base des chèques</h2>
 
-    <form action="/filtre-resultats" method="get" class="row g-3">
+  <!-- 1) On utilise th:action pour être sûr que le chemin est corrigé avec le context-path -->
+  <form th:action="@{/filtre-resultats}" method="get" class="row g-3">
 
-        <div class="col-md-4">
-            <label for="cheque" class="form-label">Chèque</label>
-            <input type="text" id="cheque" name="cheque" class="form-control">
-        </div>
-
-        <div class="col-md-4">
-            <label for="date" class="form-label">Date</label>
-            <input type="date" id="date" name="date" class="form-control">
-        </div>
-
-        <div class="col-md-4">
-            <label for="beneficiaire" class="form-label">Bénéficiaire</label>
-            <input type="text" id="beneficiaire" name="beneficiaire" class="form-control">
-        </div>
-
-        <div class="col-md-4">
-            <label for="montant" class="form-label">Montant</label>
-            <input type="number" id="montant" name="montant" class="form-control" step="0.01">
-        </div>
-
-        <div class="col-md-12 d-flex justify-content-end">
-            <button type="submit" class="btn btn-primary">Rechercher</button>
-        </div>
-    </form>
-
-    <hr class="my-4">
-
-    <div th:if="${resultats != null}">
-        <h4 th:text="'Résultats trouvés : ' + ${resultats.size()}"></h4>
-
-        <table class="table table-bordered mt-3" th:if="${resultats.size() > 0}">
-            <thead>
-                <tr>
-                    <th>Chèque</th>
-                    <th>Bénéficiaire</th>
-                    <th>Date</th>
-                    <th>Montant</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr th:each="cheque : ${resultats}">
-                    <td th:text="${cheque.nomCheque + cheque.nomSerie + cheque.numeroSerie}"></td>
-                    <td th:text="${cheque.beneficiaire}"></td>
-                    <td th:text="${cheque.date}"></td>
-                    <td th:text="${#numbers.formatDecimal(cheque.montant, 1, 'NONE', 2, 'POINT')}"></td>
-                </tr>
-            </tbody>
-        </table>
-
-        <div th:if="${resultats.size() == 0}">
-            <p>Aucun résultat trouvé.</p>
-        </div>
+    <div class="col-md-4">
+      <label for="cheque" class="form-label">Chèque (nom+série+N°)</label>
+      <input type="text" id="cheque" name="cheque" class="form-control"
+             th:value="${cheque != null}?${cheque}"> 
     </div>
+
+    <div class="col-md-4">
+      <label for="date" class="form-label">Date</label>
+      <input type="date" id="date" name="date" class="form-control"
+             th:value="${date}">
+    </div>
+
+    <div class="col-md-4">
+      <label for="beneficiaire" class="form-label">Bénéficiaire</label>
+      <input type="text" id="beneficiaire" name="beneficiaire" class="form-control"
+             th:value="${beneficiaire}">
+    </div>
+
+    <div class="col-md-4">
+      <label for="montant" class="form-label">Montant</label>
+      <input type="number" id="montant" name="montant" class="form-control" step="0.01"
+             th:value="${montant}">
+    </div>
+
+    <div class="col-md-12 d-flex justify-content-end">
+      <button type="submit" class="btn btn-primary">Rechercher</button>
+    </div>
+  </form>
+
+  <hr class="my-4">
+
+  <!-- 2) Affichage des résultats si la liste est non nulle -->
+  <div th:if="${resultats != null}">
+    <h4 th:text="'Résultats trouvés : ' + ${resultats.size()}"></h4>
+
+    <!-- 3) Tableau des résultats -->
+    <table class="table table-bordered mt-3" th:if="${resultats.size() > 0}">
+      <thead>
+        <tr>
+          <th>Chèque</th>
+          <th>Bénéficiaire</th>
+          <th>Date</th>
+          <th>Montant</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr th:each="cheque : ${resultats}">
+          <td>
+            <!-- 4) Lien vers /cheque/cheque2/{id} -->
+            <a th:href="@{'/cheque/cheque2/' + ${cheque.id} + '?langue=fr'}"
+               target="_blank"
+               th:text="${cheque.nomCheque + cheque.nomSerie + cheque.numeroSerie}">
+              Chèque
+            </a>
+          </td>
+          <td th:text="${cheque.beneficiaire}">Bénéficiaire</td>
+          <td th:text="${cheque.date}">2025-07-15</td>
+          <td th:text="${#numbers.formatDecimal(cheque.montant, 1, 'NONE', 2, 'POINT')}">
+            1234.56
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div th:if="${resultats.size() == 0}">
+      <p>Aucun résultat trouvé.</p>
+    </div>
+  </div>
 
 </body>
 </html>
