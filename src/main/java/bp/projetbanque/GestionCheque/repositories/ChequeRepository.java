@@ -7,4 +7,5 @@ import java.util.Optional;
 
 public interface ChequeRepository extends JpaRepository<Cheque, Long> {
 	Optional<Cheque> findByNomChequeAndNomSerieAndNumeroSerie(String nomCheque, String nomSerie, Long numeroSerie);
+	Optional<Cheque> findByNumeroSerie(Long numeroSerie); // 👈 Ajouté ici
 }
