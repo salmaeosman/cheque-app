@@ -12,13 +12,32 @@ public class ChequeApplication {
     public static void main(String[] args) {
         SpringApplication.run(ChequeApplication.class, args);
 
-        // Ouvrir le navigateur automatiquement après le démarrage
         try {
-            String url = "http://localhost:8103/cheque/formulaire"; // ou le port que tu utilises
+            Thread.sleep(3000);
+            openBrowser("http://localhost:8103/cheque/formulaire");
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void openBrowser(String url) {
+        try {
             if (Desktop.isDesktopSupported()) {
                 Desktop.getDesktop().browse(new URI(url));
             } else {
-                System.out.println("Desktop not supported. Please open your browser and go to " + url);
+                // Méthode alternative selon le système
+                String os = System.getProperty("os.name").toLowerCase();
+                Runtime rt = Runtime.getRuntime();
+
+                if (os.contains("win")) {
+                    rt.exec("rundll32 url.dll,FileProtocolHandler " + url);
+                } else if (os.contains("mac")) {
+                    rt.exec("open " + url);
+                } else if (os.contains("nix") || os.contains("nux")) {
+                    rt.exec("xdg-open " + url);
+                } else {
+                    System.err.println("Impossible d'ouvrir le navigateur automatiquement sur ce système.");
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
