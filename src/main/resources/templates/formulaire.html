@@ -43,26 +43,10 @@
     .error-montant { top: 11%; right: 8%; }
     .error-ville { top: 52%; left: 45%; }
     .error-date { top: 52%; left: 72%; }
-    #arabicKeyboard {
-      display: none;
-      margin: 20px auto;
-      max-width: 600px;
-      text-align: center;
-    }
-    .key {
-      display: inline-block;
-      margin: 3px;
-      padding: 10px 15px;
-      border: 1px solid #ccc;
-      background-color: #f1f1f1;
-      font-size: 18px;
-      cursor: pointer;
-      user-select: none;
-    }
-    .key:hover { background-color: #ddd; }
   </style>
 </head>
 <body class="container mt-5">
+
   <h2 class="mb-4 text-center">Formulaire de chèque</h2>
 
   <div class="language-selection">
@@ -79,9 +63,12 @@
       <input type="text" name="beneficiaire" id="beneficiaire" class="form-control field beneficiaire" placeholder="Nom du bénéficiaire" maxlength="50" required disabled>
       <div class="error-message error-beneficiaire" id="errorBeneficiaire"></div>
 
-      <input type="text" name="ville" id="ville" class="form-control field ville" required disabled>
+      <input type="text" name="ville" id="ville" class="form-control field ville" placeholder="Ville" required disabled>
       <div class="error-message error-ville" id="errorVille"></div>
 
+      <input type="date" name="date" id="date" class="form-control field date-cheque" required disabled>
+      <div class="error-message error-date" id="errorDate"></div>
+      
       <input type="text" name="nomCheque" id="nomCheque" class="form-control field nomCheque" placeholder="Nom du chèque" maxlength="1" required disabled>
       <div class="error-message error-nomCheque" id="errorNomCheque"></div>
 
@@ -91,8 +78,6 @@
       <input type="text" name="numeroSerie" id="numeroSerie" class="form-control field numeroSerie" placeholder="Numéro de série" maxlength="10" required disabled>
       <div class="error-message error-numeroSerie" id="errorNumeroSerie"></div>
 
-      <input type="date" name="date" id="date" class="form-control field date-cheque" required disabled>
-      <div class="error-message error-date" id="errorDate"></div>
 
       <input type="hidden" name="langue" id="langueHidden">
     </div>
@@ -102,39 +87,59 @@
     </div>
   </form>
 
-  <div id="arabicKeyboard"></div>
-
 <script>
 const fields = [
   'montant', 'beneficiaire', 'ville', 'nomCheque',
   'nomSerie', 'numeroSerie', 'date'
 ];
 
-const arabicLetters = ['ض','ص','ث','ق','ف','غ','ع','ه','خ','ح','ج','د','ش','س','ي','ب','ل','ا','ت','ن','م','ك','ط','ئ','ء','ؤ','ر','لا','ى','ة','و','ز','ظ','ذ'];
+const messages = {
+  fr: {
+    montant: "Montant invalide.",
+    beneficiaire: "Champ obligatoire.",
+    ville: "Champ obligatoire.",
+    nomCheque: "Lettre majuscule obligatoire.",
+    nomSerie: "Lettre majuscule obligatoire.",
+    numeroSerie: "Numéro invalide.",
+    date: "Date obligatoire.",
+    placeholders: {
+      montant: "Montant",
+      beneficiaire: "Nom du bénéficiaire",
+      ville: "Ville",
+      nomCheque: "Nom du chèque",
+      nomSerie: "Nom de série",
+      numeroSerie: "Numéro de série"
+    }
+  },
+  ar: {
+    montant: "المبلغ غير صالح.",
+    beneficiaire: "حقل إلزامي.",
+    ville: "حقل إلزامي.",
+    nomCheque: "حرف كبير فقط.",
+    nomSerie: "حرف كبير فقط.",
+    numeroSerie: "رقم غير صالح.",
+    date: "التاريخ إلزامي.",
+    placeholders: {
+      montant: "المبلغ",
+      beneficiaire: "اسم المستفيد",
+      ville: "المدينة",
+      nomCheque: "حرف الشيك",
+      nomSerie: "رمز السلسلة",
+      numeroSerie: "رقم السلسلة"
+    }
+  }
+};
 
-let currentInput = null;
-
-function createArabicKeyboard() {
-  const container = document.getElementById('arabicKeyboard');
-  container.innerHTML = '';
-  arabicLetters.forEach(letter => {
-    const key = document.createElement('span');
-    key.className = 'key';
-    key.textContent = letter;
-    key.onclick = () => {
-      if (currentInput && currentInput.value.length < 50) {
-        const start = currentInput.selectionStart;
-        const end = currentInput.selectionEnd;
-        const value = currentInput.value;
-        currentInput.value = value.slice(0, start) + letter + value.slice(end);
-        currentInput.focus();
-        currentInput.selectionStart = currentInput.selectionEnd = start + 1;
-        validateField(currentInput.id);
-      }
-    };
-    container.appendChild(key);
-  });
-}
+const arabicMap = {
+  a: 'ش', b: 'لا', c: 'ؤ', d: 'ي', e: 'ث', f: 'ب', g: 'ل',
+  h: 'ا', i: 'ه', j: 'ت', k: 'ن', l: 'م', m: 'ة', n: 'ى',
+  o: 'خ', p: 'ح', q: 'ض', r: 'ق', s: 'س', t: 'ف', u: 'ع',
+  v: 'ر', w: 'ص', x: 'ء', y: 'غ', z: 'ئ',
+  A: 'ش', B: 'لا', C: 'ؤ', D: 'ي', E: 'ث', F: 'ب', G: 'ل',
+  H: 'ا', I: 'ه', J: 'ت', K: 'ن', L: 'م', M: 'ة', N: 'ى',
+  O: 'خ', P: 'ح', Q: 'ض', R: 'ق', S: 'س', T: 'ف', U: 'ع',
+  V: 'ر', W: 'ص', X: 'ء', Y: 'غ', Z: 'ئ'
+};
 
 function enableFields() {
   const lang = document.querySelector('input[name="langue"]:checked')?.value;
@@ -143,21 +148,15 @@ function enableFields() {
   document.getElementById('langueHidden').value = lang;
 
   fields.forEach(id => {
-    document.getElementById(id).disabled = false;
+    const input = document.getElementById(id);
+    input.disabled = false;
+    input.placeholder = messages[lang].placeholders[id] || "";
+    if (['beneficiaire', 'ville'].includes(id)) {
+      input.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
+    }
   });
 
-  const beneficiaire = document.getElementById('beneficiaire');
-  const ville = document.getElementById('ville');
-  if (lang === 'ar') {
-    beneficiaire.setAttribute('dir', 'rtl');
-    ville.setAttribute('dir', 'rtl');
-    ville.value = 'وجدة';
-  } else {
-    beneficiaire.setAttribute('dir', 'ltr');
-    ville.setAttribute('dir', 'ltr');
-    ville.value = 'Oujda';
-  }
-
+  document.getElementById('ville').value = lang === 'ar' ? 'وجدة' : 'Oujda';
   document.getElementById('date').value ||= new Date().toISOString().split('T')[0];
   document.getElementById('submitBtn').disabled = false;
 }
@@ -165,36 +164,29 @@ function enableFields() {
 function validateField(id) {
   const val = document.getElementById(id).value.trim();
   const error = document.getElementById("error" + id.charAt(0).toUpperCase() + id.slice(1));
+  const lang = document.getElementById('langueHidden').value;
   let valid = true;
 
   switch (id) {
     case 'montant':
-      valid = val !== "" && !isNaN(val) && Number(val) > 0;
-      error.textContent = valid ? "" : "Montant invalide.";
+    	valid = val !== "" && !isNaN(val) && Number(val) > 0 && /^\d+([.,]\d{1,2})?$/.test(val);
       break;
     case 'beneficiaire':
-      valid = val.length > 0;
-      error.textContent = valid ? "" : "Champ obligatoire.";
-      break;
     case 'ville':
       valid = val.length > 0;
-      error.textContent = valid ? "" : "Champ obligatoire.";
       break;
     case 'nomCheque':
     case 'nomSerie':
       valid = /^[A-Za-z]$/.test(val);
-      error.textContent = valid ? "" : "Lettre majuscule obligatoire.";
       break;
     case 'numeroSerie':
       valid = /^\d{1,10}$/.test(val);
-      error.textContent = valid ? "" : "Numéro invalide.";
       break;
     case 'date':
       valid = val !== "";
-      error.textContent = valid ? "" : "Date obligatoire.";
       break;
   }
-
+  error.textContent = valid ? "" : messages[lang][id];
   return valid;
 }
 
@@ -210,26 +202,38 @@ document.addEventListener('DOMContentLoaded', () => {
   fields.forEach(id => {
     const input = document.getElementById(id);
     input.addEventListener('input', () => {
-      if (id === 'beneficiaire') input.value = input.value.toUpperCase();
-      if (['nomCheque', 'nomSerie'].includes(id)) input.value = input.value.toUpperCase();
+      const lang = document.getElementById('langueHidden').value;
+      if (lang === 'fr' && ['beneficiaire', 'ville'].includes(id)) {
+        input.value = input.value.toUpperCase();
+      }
+      if (['nomCheque', 'nomSerie'].includes(id)) {
+        input.value = input.value.toUpperCase();
+      }
       validateField(id);
     });
 
-    input.addEventListener('focus', () => {
+    input.addEventListener('keypress', function (e) {
       const lang = document.getElementById('langueHidden').value;
-      currentInput = input;
       if (lang === 'ar' && ['beneficiaire', 'ville'].includes(id)) {
-        createArabicKeyboard();
-        document.getElementById('arabicKeyboard').style.display = 'block';
-      } else {
-        document.getElementById('arabicKeyboard').style.display = 'none';
-      }
-    });
+    	  const arabicChar = arabicMap[e.key];
+    	  if (arabicChar) {
+    	    const currentLength = input.value.length;
+    	    const selectionLength = input.selectionEnd - input.selectionStart;
 
-    input.addEventListener('blur', () => {
-      if (!['beneficiaire', 'ville'].includes(id)) {
-        document.getElementById('arabicKeyboard').style.display = 'none';
-      }
+    	    // Ne pas dépasser 50 caractères (en prenant en compte la sélection)
+    	    if (currentLength - selectionLength >= 50) {
+    	      e.preventDefault();
+    	      return;
+    	    }
+
+    	    e.preventDefault();
+    	    const start = input.selectionStart;
+    	    const end = input.selectionEnd;
+    	    const value = input.value;
+    	    input.value = value.slice(0, start) + arabicChar + value.slice(end);
+    	    input.selectionStart = input.selectionEnd = start + arabicChar.length;
+    	  }
+    	}
     });
   });
 
@@ -240,5 +244,6 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 </script>
+
 </body>
 </html>
