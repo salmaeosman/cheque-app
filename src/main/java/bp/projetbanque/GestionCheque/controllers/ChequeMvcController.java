@@ -1,4 +1,3 @@
-// ChequeMvcController.java
 package bp.projetbanque.GestionCheque.controllers;
 
 import bp.projetbanque.GestionCheque.entities.Cheque;
@@ -61,9 +60,9 @@ public class ChequeMvcController {
 
         chequeRepository.save(cheque);
 
-        // Redirection avec paramètre de langue pour réaffichage correct
         return "redirect:/cheque/afficher/" + cheque.getId() + "?langue=" + langue;
     }
+
     @PostMapping("/modifier")
     public String modifierCheque(@ModelAttribute Cheque cheque) {
         chequeRepository.save(cheque);
@@ -77,7 +76,6 @@ public class ChequeMvcController {
         Cheque cheque = chequeRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Chèque introuvable"));
 
-        // Vérification de complétude
         if (cheque.getNomCheque() == null ||
             cheque.getNomSerie() == null ||
             cheque.getNumeroSerie() == null ||
@@ -90,11 +88,12 @@ public class ChequeMvcController {
 
         model.addAttribute("cheque", cheque);
         model.addAttribute("montant", cheque.getMontant());
-        model.addAttribute("langue", langue); // 🔥 Important !
+        model.addAttribute("langue", langue);
         model.addAttribute("montantLettre", montantService.convertirMontant(cheque.getMontant(), langue));
 
         return "cheque-impression";
     }
+
     @GetMapping("/imprimer/{id}")
     public String imprimerCheque(@PathVariable Long id,
                                  @RequestParam(defaultValue = "fr") String langue,
@@ -109,5 +108,20 @@ public class ChequeMvcController {
 
         return "cheque-modification";
     }
-    
+
+    // ✅ NOUVELLE ROUTE POUR /cheque/cheque2/{id}
+    @GetMapping("/cheque2/{id}")
+    public String afficherChequeDepuisResultats(@PathVariable Long id,
+                                                @RequestParam(defaultValue = "fr") String langue,
+                                                Model model) {
+        Cheque cheque = chequeRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Chèque introuvable"));
+
+        model.addAttribute("cheque", cheque);
+        model.addAttribute("montant", cheque.getMontant());
+        model.addAttribute("langue", langue);
+        model.addAttribute("montantLettre", montantService.convertirMontant(cheque.getMontant(), langue));
+
+        return "cheque-impression";
+    }
 }
