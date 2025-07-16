@@ -122,6 +122,6 @@ public class ChequeMvcController {
         model.addAttribute("langue", langue);
         model.addAttribute("montantLettre", montantService.convertirMontant(cheque.getMontant(), langue));
 
-        return "cheque-impression";
+        return "cheque2";
     }
 }
