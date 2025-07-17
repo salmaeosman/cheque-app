@@ -61,7 +61,7 @@
         <tr th:each="cheque : ${resultats}">
           <td>
             <!-- 4) Lien vers /cheque/cheque2/{id} -->
-            <a th:href="@{'/cheque/cheque2/' + ${cheque.id} + '?langue=fr'}"
+            <a th:href="@{'/cheque/cheque2/' + ${cheque.id} + '?langue=' + ${cheque.langue}}"
                target="_blank"
                th:text="${cheque.nomCheque + cheque.nomSerie + cheque.numeroSerie}">
               Chèque

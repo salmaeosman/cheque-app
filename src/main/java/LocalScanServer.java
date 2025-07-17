@@ -1,144 +1,346 @@
+
 import com.sun.net.httpserver.HttpExchange;
+
 import com.sun.net.httpserver.HttpServer;
 
+
+
 import java.io.*;
+
 import java.net.*;
+
 import java.nio.charset.StandardCharsets;
+
+import java.nio.file.Files;
+
 import java.util.*;
+
+
 
 public class LocalScanServer {
 
-    // Chemin complet vers naps2.console.exe — À ADAPTER SELON VOTRE INSTALLATION
-    private static final String NAPS2_CONSOLE_PATH = "C:\\Program Files\\NAPS2\\naps2.console.exe";
 
-    public static void main(String[] args) throws Exception {
-        HttpServer server = HttpServer.create(new InetSocketAddress(8104), 0);
-        server.createContext("/scan/lancer-scan", LocalScanServer::handleScanRequest);
-        server.setExecutor(null);
-        System.out.println("Serveur de scan lancé sur http://localhost:8104");
-        server.start();
-    }
 
-    private static void handleScanRequest(HttpExchange exchange) {
-        try {
-            Map<String, String> params = queryToMap(exchange.getRequestURI().getQuery());
-            String chequeId = params.get("chequeId");
+// Chemin vers l'exécutable NAPS2
 
-            if (chequeId == null || chequeId.isEmpty()) {
-                sendJson(exchange, 400, "{\"success\":false,\"message\":\"ID du chèque manquant\"}");
-                return;
-            }
+private static final String NAPS2_CONSOLE_PATH =
 
-            File outputFile = new File("scan_" + chequeId + ".jpg");
+"C:\\Program Files\\NAPS2\\naps2.console.exe";
 
-            // Vérification si l'exécutable existe
-            File naps2Executable = new File(NAPS2_CONSOLE_PATH);
-            if (!naps2Executable.exists()) {
-                sendJson(exchange, 500, "{\"success\":false,\"message\":\"NAPS2 n'est pas installé ou le chemin est incorrect: " + NAPS2_CONSOLE_PATH.replace("\\", "\\\\") + "\"}");
-                return;
-            }
 
-            ProcessBuilder pb = new ProcessBuilder(
-                NAPS2_CONSOLE_PATH,
-                "-o", outputFile.getAbsolutePath(),
-                "-f", "jpg"
-            );
 
-            pb.redirectErrorStream(true); // redirige la sortie d'erreur vers la sortie standard
-            Process process = pb.start();
+// URL de ton endpoint Spring Boot qui reçoit le scan (port 8103)
 
-            // Afficher les logs du processus pour debug
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    System.out.println("[NAPS2] " + line);
-                }
-            }
+private static final String UPLOAD_URL =
 
-            int result = process.waitFor();
+"http://localhost:8103/api/scan/upload";
 
-            if (result != 0 || !outputFile.exists()) {
-                sendJson(exchange, 500, "{\"success\":false,\"message\":\"Échec du scan\"}");
-                return;
-            }
 
-            boolean uploaded = uploadToServer(outputFile, chequeId);
-            if (!uploaded) {
-                sendJson(exchange, 500, "{\"success\":false,\"message\":\"Échec de l'upload\"}");
-                return;
-            }
 
-            sendJson(exchange, 200, "{\"success\":true}");
-        } catch (Exception e) {
-            e.printStackTrace();
-            try {
-                sendJson(exchange, 500, "{\"success\":false,\"message\":\"Erreur interne\"}");
-            } catch (IOException ignored) {}
-        }
-    }
+public static void main(String[] args) throws IOException {
 
-    private static boolean uploadToServer(File file, String chequeId) throws IOException {
-        String boundary = Long.toHexString(System.currentTimeMillis());
-        URL url = new URL("http://localhost:8104/api/scan/upload");
+HttpServer server = HttpServer.create(new InetSocketAddress(8104), 0);
 
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        connection.setDoOutput(true);
-        connection.setRequestMethod("POST");
-        connection.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + boundary);
+server.createContext("/scan/lancer-scan", LocalScanServer::handleScanRequest);
 
-        try (
-            OutputStream output = connection.getOutputStream();
-            PrintWriter writer = new PrintWriter(new OutputStreamWriter(output, StandardCharsets.UTF_8), true)
-        ) {
-            String CRLF = "\r\n";
+server.setExecutor(null);
 
-            // Paramètre chequeId
-            writer.append("--").append(boundary).append(CRLF);
-            writer.append("Content-Disposition: form-data; name=\"chequeId\"").append(CRLF);
-            writer.append(CRLF).append(chequeId).append(CRLF).flush();
+System.out.println("➡ Serveur de scan lancé sur http://localhost:8104");
 
-            // Fichier image
-            writer.append("--").append(boundary).append(CRLF);
-            writer.append("Content-Disposition: form-data; name=\"file\"; filename=\"")
-                .append(file.getName()).append("\"").append(CRLF);
-            writer.append("Content-Type: image/jpeg").append(CRLF);
-            writer.append(CRLF).flush();
+server.start();
 
-            FileInputStream input = new FileInputStream(file);
-            byte[] buffer = new byte[1024];
-            int len;
-            while ((len = input.read(buffer)) != -1) output.write(buffer, 0, len);
-            output.flush();
-            input.close();
+}
 
-            writer.append(CRLF).flush();
-            writer.append("--").append(boundary).append("--").append(CRLF).flush();
-        }
 
-        return connection.getResponseCode() == 200;
-    }
 
-    private static void sendJson(HttpExchange exchange, int statusCode, String json) throws IOException {
-        exchange.getResponseHeaders().add("Content-Type", "application/json");
-        byte[] responseBytes = json.getBytes(StandardCharsets.UTF_8);
-        exchange.sendResponseHeaders(statusCode, responseBytes.length);
-        OutputStream os = exchange.getResponseBody();
-        os.write(responseBytes);
-        os.close();
-    }
+private static void handleScanRequest(HttpExchange exchange) throws IOException {
 
-    private static Map<String, String> queryToMap(String query) {
-        Map<String, String> map = new HashMap<>();
-        if (query == null) return map;
-        for (String param : query.split("&")) {
-            String[] pair = param.split("=");
-            if (pair.length > 1) {
-                map.put(
-                    URLDecoder.decode(pair[0], StandardCharsets.UTF_8),
-                    URLDecoder.decode(pair[1], StandardCharsets.UTF_8)
-                );
-            }
-        }
-        return map;
-    }
+try {
+
+// 1) Méthode autorisée
+
+if (!"GET".equalsIgnoreCase(exchange.getRequestMethod())) {
+
+sendJson(exchange, 405,
+
+"{\"success\":false,\"message\":\"Method Not Allowed\"}");
+
+return;
+
+}
+
+
+
+// 2) Récupération du chequeId
+
+String query = exchange.getRequestURI().getQuery();
+
+Map<String,String> params = queryToMap(query);
+
+String chequeId = params.get("chequeId");
+
+if (chequeId == null || chequeId.isBlank()) {
+
+sendJson(exchange, 400,
+
+"{\"success\":false,\"message\":\"ID du chèque manquant\"}");
+
+return;
+
+}
+
+
+
+// 3) Préparation du fichier de sortie
+
+File output = new File("scan_" + chequeId + ".jpg");
+
+
+
+// 4) Vérification de l'exécutable NAPS2
+
+File exe = new File(NAPS2_CONSOLE_PATH);
+
+if (!exe.exists()) {
+
+sendJson(exchange, 500,
+
+"{\"success\":false,\"message\":"
+
++ "\"NAPS2 introuvable: " + NAPS2_CONSOLE_PATH + "\"}");
+
+return;
+
+}
+
+
+
+// 5) Lancement du scan
+
+ProcessBuilder pb = new ProcessBuilder(
+
+NAPS2_CONSOLE_PATH,
+
+"-o", output.getAbsolutePath(),
+
+"-f", "jpg"
+
+);
+
+pb.redirectErrorStream(true);
+
+System.out.println("🔧 Exécution de : " + String.join(" ", pb.command()));
+
+Process p = pb.start();
+
+
+
+// 6) Log du process
+
+try (BufferedReader r = new BufferedReader(
+
+new InputStreamReader(p.getInputStream()))) {
+
+r.lines().forEach(l -> System.out.println("[NAPS2] " + l));
+
+}
+
+int exit = p.waitFor();
+
+if (exit != 0 || !output.exists()) {
+
+sendJson(exchange, 500,
+
+"{\"success\":false,\"message\":"
+
++ "\"Echec du scan (code " + exit + ")\"}");
+
+return;
+
+}
+
+
+
+// 7) Upload vers Spring Boot
+
+if (!uploadToServer(output, chequeId)) {
+
+sendJson(exchange, 500,
+
+"{\"success\":false,\"message\":\"Echec de l'upload\"}");
+
+return;
+
+}
+
+
+
+// 8) Réponse OK
+
+sendJson(exchange, 200, "{\"success\":true}");
+
+} catch (Exception e) {
+
+e.printStackTrace();
+
+sendJson(exchange, 500,
+
+"{\"success\":false,\"message\":\"Erreur interne\"}");
+
+}
+
+}
+
+
+
+private static boolean uploadToServer(File file, String chequeId) throws IOException {
+
+String boundary = "----Boundary" + System.currentTimeMillis();
+
+URL url = new URL(UPLOAD_URL);
+
+HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+
+conn.setDoOutput(true);
+
+conn.setRequestMethod("POST");
+
+conn.setRequestProperty(
+
+"Content-Type",
+
+"multipart/form-data; boundary=" + boundary
+
+);
+
+
+
+try (
+
+OutputStream out = conn.getOutputStream();
+
+PrintWriter writer = new PrintWriter(
+
+new OutputStreamWriter(out, StandardCharsets.UTF_8), true
+
+)
+
+) {
+
+String CRLF = "\r\n";
+
+
+
+// -- chequeId
+
+writer.append("--").append(boundary).append(CRLF);
+
+writer.append(
+
+"Content-Disposition: form-data; name=\"chequeId\""
+
+).append(CRLF).append(CRLF);
+
+writer.append(chequeId).append(CRLF).flush();
+
+
+
+// -- fichier
+
+writer.append("--").append(boundary).append(CRLF);
+
+writer.append(
+
+"Content-Disposition: form-data; name=\"file\"; filename=\""
+
++ file.getName() + "\""
+
+).append(CRLF);
+
+writer.append("Content-Type: image/jpeg").append(CRLF).append(CRLF);
+
+writer.flush();
+
+
+
+// copie bytes
+
+Files.copy(file.toPath(), out);
+
+out.flush();
+
+writer.append(CRLF).flush();
+
+
+
+// -- fin de multipart
+
+writer.append("--").append(boundary).append("--").append(CRLF).flush();
+
+}
+
+
+
+int code = conn.getResponseCode();
+
+System.out.println("📤 Upload HTTP code: " + code);
+
+return code >= 200 && code < 300;
+
+}
+
+
+
+private static void sendJson(
+
+HttpExchange exchange, int status, String json
+
+) throws IOException {
+
+exchange.getResponseHeaders().set(
+
+"Content-Type", "application/json; charset=UTF-8"
+
+);
+
+byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
+
+exchange.sendResponseHeaders(status, bytes.length);
+
+try (OutputStream os = exchange.getResponseBody()) {
+
+os.write(bytes);
+
+}
+
+}
+
+
+
+private static Map<String,String> queryToMap(String query) {
+
+Map<String,String> map = new HashMap<>();
+
+if (query == null || query.isBlank()) return map;
+
+for (String part : query.split("&")) {
+
+String[] kv = part.split("=", 2);
+
+String key = URLDecoder.decode(kv[0], StandardCharsets.UTF_8);
+
+String val = kv.length>1
+
+? URLDecoder.decode(kv[1], StandardCharsets.UTF_8)
+
+: "";
+
+map.put(key, val);
+
+}
+
+return map;
+
+}
+
 }

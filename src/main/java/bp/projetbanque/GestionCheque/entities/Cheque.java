@@ -23,6 +23,9 @@ public class Cheque {
     private Long numeroSerie;
 
     private String beneficiaire;
+    
+    @Column(length = 2)
+    private String langue; // <-- Ajout du champ langue (ex: "fr" ou "ar")
 
     // Getters & Setters
     public Long getId() { return id; }
@@ -47,4 +50,7 @@ public class Cheque {
 
     public String getBeneficiaire() { return beneficiaire; }
     public void setBeneficiaire(String beneficiaire) { this.beneficiaire = beneficiaire; }
+    
+    public String getLangue() { return langue; }
+    public void setLangue(String langue) { this.langue = langue; }
 }

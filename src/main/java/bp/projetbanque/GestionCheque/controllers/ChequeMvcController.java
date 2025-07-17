@@ -57,10 +57,12 @@ public class ChequeMvcController {
         cheque.setNomSerie(nomSerieUpper);
         cheque.setNumeroSerie(numeroSerie);
         cheque.setBeneficiaire(beneficiaire.toUpperCase());
+        cheque.setLangue(langue); // <-- Enregistrement de la langue
 
         chequeRepository.save(cheque);
 
-        return "redirect:/cheque/afficher/" + cheque.getId() + "?langue=" + langue;
+        // Redirection vers /cheque/cheque2/{id}?langue={langue}
+        return "redirect:/cheque/cheque2/" + cheque.getId() + "?langue=" + cheque.getLangue();
     }
 
     @PostMapping("/modifier")
@@ -109,7 +111,6 @@ public class ChequeMvcController {
         return "cheque-modification";
     }
 
-    // ✅ NOUVELLE ROUTE POUR /cheque/cheque2/{id}
     @GetMapping("/cheque2/{id}")
     public String afficherChequeDepuisResultats(@PathVariable Long id,
                                                 @RequestParam(defaultValue = "fr") String langue,
