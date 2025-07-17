@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -17,27 +17,23 @@
 <body>
   <div class="container">
     <h2>📄 Scanner un Chèque</h2>
-    <form method="post" enctype="multipart/form-data" action="/scan/upload">
-      <input type="hidden" id="chequeId" name="chequeId" value="12345" />
+    <form method="post" enctype="multipart/form-data" th:action="@{/scan/upload}">
+      <input type="hidden" id="chequeId" name="chequeId" th:value="${chequeId}" />
+      
       <label for="file">Importer une image :</label>
       <input type="file" id="file" name="file" accept="image/*" required />
+
       <button type="submit">📤 Envoyer l'image</button>
       <button type="button" onclick="lancerScan()">📷 Scanner depuis périphérique</button>
     </form>
   </div>
 
-  <script>
+  <script th:inline="javascript">
     function lancerScan() {
-      const chequeId = document.getElementById("chequeId").value;
-      fetch(`http://localhost:8104/scan/lancer-scan?chequeId=${chequeId}`)
-        .then(res => res.json())
-        .then(data => {
-          if (data.success) {
-            alert("✅ Scan terminé et image envoyée.");
-          } else {
-            alert("❌ Erreur : " + data.message);
-          }
-        })
+      const chequeId = /*[[${chequeId}]]*/ 0;
+      fetch(`/scan/lancer-scan?chequeId=${chequeId}`)
+        .then(res => res.text())
+        .then(msg => alert("✅ " + msg))
         .catch(err => alert("Erreur réseau : " + err.message));
     }
   </script>

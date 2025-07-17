@@ -38,7 +38,7 @@ public class ScanController {
                     .orElseThrow(() -> new RuntimeException("Chèque non trouvé"));
 
             Scan scan = new Scan();
-            scan.setChequeId(chequeId);
+            scan.setCheque(cheque); // ← ici on met l'objet
             scan.setFileName(file.getOriginalFilename());
             scan.setFileType(file.getContentType());
             scan.setImage(file.getBytes());
@@ -50,6 +50,7 @@ public class ScanController {
             throw new RuntimeException("Erreur lors de l'enregistrement du scan", e);
         }
     }
+
     @GetMapping("/afficher/{chequeId}")
     public String afficherScan(@PathVariable Long chequeId, Model model) {
         Scan scan = scanRepository.findByChequeId(chequeId)
@@ -58,6 +59,7 @@ public class ScanController {
         model.addAttribute("scan", scan);
         return "afficher-scan";
     }
+
     @GetMapping("/image/{id}")
     @ResponseBody
     public byte[] afficherImage(@PathVariable Long id) {
@@ -65,12 +67,11 @@ public class ScanController {
                 .orElseThrow(() -> new RuntimeException("Image introuvable"));
         return scan.getImage();
     }
+
     @GetMapping("/lancer-scan")
     @ResponseBody
     public ResponseEntity<String> lancerScanDepuisServeur(@RequestParam Long chequeId) {
         try {
-            // Lancer l'application Java côté client (vous devez rendre cela possible via une app native)
-            // Ici, vous pouvez écrire un fichier temporaire, une file d'attente ou autre
             return ResponseEntity.ok("Scan en cours");
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Erreur : " + e.getMessage());

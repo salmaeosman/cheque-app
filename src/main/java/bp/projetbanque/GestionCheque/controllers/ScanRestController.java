@@ -1,5 +1,6 @@
 package bp.projetbanque.GestionCheque.controllers;
 
+import bp.projetbanque.GestionCheque.entities.Cheque;
 import bp.projetbanque.GestionCheque.entities.Scan;
 import bp.projetbanque.GestionCheque.repositories.ChequeRepository;
 import bp.projetbanque.GestionCheque.repositories.ScanRepository;
@@ -24,12 +25,11 @@ public class ScanRestController {
     public ResponseEntity<String> uploadScan(@RequestParam("chequeId") Long chequeId,
                                              @RequestParam("file") MultipartFile file) {
         try {
-            // Vérifie que le chèque existe
-            chequeRepository.findById(chequeId)
+            Cheque cheque = chequeRepository.findById(chequeId)
                     .orElseThrow(() -> new RuntimeException("Chèque non trouvé"));
 
             Scan scan = new Scan();
-            scan.setChequeId(chequeId);
+            scan.setCheque(cheque); // ← ici aussi
             scan.setFileName(file.getOriginalFilename());
             scan.setFileType(file.getContentType());
             scan.setImage(file.getBytes());
