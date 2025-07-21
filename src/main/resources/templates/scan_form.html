@@ -5,8 +5,10 @@
     <title>Scan du Chèque</title>
 </head>
 <body>
-    <h1>Scan du chèque : <span th:text="${cheque.nomCheque}">Nom du chèque</span></h1>
-
+    <h1>
+        Scan du chèque :
+        <span th:text="${cheque.nomCheque + ' ' + cheque.nomSerie + ' ' + cheque.numeroSerie}">Chèque Info</span>
+    </h1>
     <div th:if="${error}" style="color: red;" th:text="${error}"></div>
     <div th:if="${message}" style="color: green;" th:text="${message}"></div>
 
