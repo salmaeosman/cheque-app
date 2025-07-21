@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Scan du Chèque</title>
+</head>
+<body>
+    <h1>Scan du chèque : <span th:text="${cheque.nomCheque}">Nom du chèque</span></h1>
+
+    <div th:if="${error}" style="color: red;" th:text="${error}"></div>
+    <div th:if="${message}" style="color: green;" th:text="${message}"></div>
+
+<form th:action="@{'/scan/real/' + ${cheque.id}}" method="post">
+        <label for="profile">Profil NAPS2 :</label>
+        <input type="text" id="profile" name="profile" value="HP300">
+        <button type="submit">Lancer le Scan</button>
+    </form>
+
+    <div th:if="${scanImageBase64}">
+        <p>Nom du fichier : <span th:text="${scan.fileName}"></span></p>
+        <img th:src="'data:image/png;base64,' + ${scanImageBase64}" style="max-width: 500px;" />
+    </div>
+</body>
+</html>
