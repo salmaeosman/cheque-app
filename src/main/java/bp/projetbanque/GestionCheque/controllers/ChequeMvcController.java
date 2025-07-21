@@ -62,7 +62,8 @@ public class ChequeMvcController {
         chequeRepository.save(cheque);
 
         // Redirection vers /cheque/cheque2/{id}?langue={langue}
-        return "redirect:/cheque/cheque2/" + cheque.getId() + "?langue=" + cheque.getLangue();
+        return "redirect:/cheque/afficher/" + cheque.getId() + "?langue=" + cheque.getLangue();
+
     }
 
     @PostMapping("/modifier")
