@@ -103,7 +103,7 @@
     .date       { top: 228px; left: 825px; font-size: 20px; }
     .serie      { top: 371px; left: 270px; font-size: 20px; }
 
-    .no-print .print-btn {
+    .print-btn {
       position: fixed;
       top: 20px;
       left: 50%;
@@ -122,18 +122,32 @@
       z-index: 1000;
     }
 
-    .no-print .print-btn:hover {
+    .print-btn:hover {
       background: linear-gradient(45deg, #218838, #28a745);
     }
+
   </style>
 </head>
 <body>
 
-  <div class="no-print">
-    <button class="print-btn" onclick="window.print()">
-      🖨 Imprimer le chèque
-    </button>
-  </div>
+<!-- Bouton d'impression en haut -->
+<div class="no-print">
+  <button class="print-btn" onclick="window.print()">
+    🖨 Imprimer le chèque
+  </button>
+</div>
+
+<!-- Ton contenu principal ici -->
+
+<!-- Bouton retour en bas -->
+<!-- Bouton retour en bas -->
+<div class="no-print">
+  <button class="print-btn" style="top: auto; bottom: 150px;" onclick="history.back(); return false;">
+    Retour
+  </button>
+</div>
+
+
 
   <div class="cheque">
     <div class="field montant-chiffres"

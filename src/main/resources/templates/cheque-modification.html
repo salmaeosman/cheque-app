@@ -85,19 +85,36 @@
     .nom-serie              { top: 76%;  left: 17%;  width: 3.5%; }
     .serie                  { top: 76%;  left: 23%;  width: 15%; }
 
-    .btn {
-      background-color: #28a745;
-      color: #fff;
-      border: none;
-      border-radius: 4px;
-      padding: 12px 24px;
-      font-size: 16px;
-      cursor: pointer;
-    }
+.bouton-bleu {
+  background: linear-gradient(90deg, #0D8BFF, #0052D4); /* dégradé bleu */
+  color: white;
+  border: none;
+  border-radius: 50px;
+  padding: 12px 30px;
+  font-weight: bold;
+  font-size: 16px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease;
+}
+
+.bouton-bleu:hover {
+  transform: scale(1.05);
+}
+
 
     .btn:hover {
       background-color: #218838;
     }
+    /* Supprime l’icône de calendrier dans le champ date */
+.no-picker::-webkit-calendar-picker-indicator {
+  display: none;
+  -webkit-appearance: none;
+}
+
+.no-picker {
+  -moz-appearance: textfield;
+}
+    
   </style>
 </head>
 
@@ -114,16 +131,29 @@
 
     <input type="text" id="beneficiaireField" class="form-control field nom" th:field="*{beneficiaire}" />
     <input type="text" class="form-control field ville" th:field="*{ville}" />
-<input type="date" class="form-control field date" name="date" th:value="${cheque.date}" />
+<input type="date" class="form-control field date no-picker" name="date" th:value="${cheque.date}" />
+
 
     <input type="text" class="form-control field cheque-nom" th:field="*{nomCheque}" />
     <input type="text" class="form-control field nom-serie" th:field="*{nomSerie}" />
     <input type="number" class="form-control field serie" th:field="*{numeroSerie}" />
   </div>
 
-  <div class="no-print" style="display: flex; justify-content: center; gap: 20px; margin-top: 20px;">
-    <button type="submit" class="btn">💾 Enregistrer</button>
-    <button type="button" class="btn" onclick="window.print()">🖨️ Imprimer</button>
+<div class="no-print" style="display: flex; justify-content: center; gap: 20px; margin-top: 20px;">
+  <button type="button"
+          class="bouton-bleu"
+          onclick="
+            if (document.referrer) {
+              window.location = document.referrer;
+            } else {
+              window.location = /*[[@{/filtre}]]*/ '/filtre';
+            }
+            return false;
+          ">
+   Retour
+  </button>
+    <button type="submit" class="bouton-bleu">💾 Enregistrer</button>
+    <button type="button" class="bouton-bleu" onclick="window.print()">🖨️ Imprimer</button>
   </div>
 </form>
 

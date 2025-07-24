@@ -154,15 +154,19 @@
     <div class="field serie"      th:text="${cheque.numeroSerie}"></div>
   </div>
 
- <div class="no-print">
+<div class="no-print">
   <div class="button-container">
     <a class="button" th:href="@{/cheque/modifier/{id}(id=${cheque.id}, langue=${langue})}" target="_blank">Modifier</a>
 
     <a class="button" th:href="@{'/scan/upload/' + ${cheque.id}}">
       Scanner le Chèque
     </a>
+
+ <a class="button" href="http://localhost:8104/filtre">Retour</a>
+
   </div>
 </div>
+
 
   <script>
     window.addEventListener('DOMContentLoaded', () => {
