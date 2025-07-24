@@ -9,6 +9,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.util.Optional;
 
 @Controller
 @RequestMapping("/cheque")
@@ -57,42 +58,64 @@ public class ChequeMvcController {
         cheque.setNomSerie(nomSerieUpper);
         cheque.setNumeroSerie(numeroSerie);
         cheque.setBeneficiaire(beneficiaire.toUpperCase());
-        cheque.setLangue(langue); // <-- Enregistrement de la langue
+        cheque.setLangue(langue);
 
         chequeRepository.save(cheque);
 
-        // Redirection vers /cheque/cheque2/{id}?langue={langue}
-        return "redirect:/cheque/afficher/" + cheque.getId() + "?langue=" + cheque.getLangue();
-
+        return "redirect:/cheque/afficher/" + cheque.getId() + "?langue=" + cheque.getLangue() + "&success=true";
     }
 
-    @PostMapping("/modifier")
-    public String modifierCheque(@ModelAttribute Cheque cheque) {
-        chequeRepository.save(cheque);
-        return "redirect:/cheque/afficher/" + cheque.getId() + "?langue=fr";
-    }
-
-    @GetMapping("/afficher/{id}")
-    public String afficherCheque(@PathVariable Long id,
-                                  @RequestParam(defaultValue = "fr") String langue,
-                                  Model model) {
+ // ✅ Affiche formulaire de modification
+    @GetMapping("/modifier/{id}")
+    public String afficherFormulaireModification(@PathVariable Long id,
+                                                 @RequestParam(defaultValue = "fr") String langue,
+                                                 Model model) {
         Cheque cheque = chequeRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Chèque introuvable"));
 
-        if (cheque.getNomCheque() == null ||
-            cheque.getNomSerie() == null ||
-            cheque.getNumeroSerie() == null ||
-            cheque.getVille() == null ||
-            cheque.getDate() == null ||
-            cheque.getBeneficiaire() == null) {
+        model.addAttribute("cheque", cheque);
+        model.addAttribute("langue", langue);
+        model.addAttribute("montantLettre", montantService.convertirMontant(cheque.getMontant(), langue));
+        return "cheque-modification";
+    }
 
-            return "redirect:/cheque/formulaire?erreur=incomplet";
-        }
+    // ✅ Enregistre les modifications d’un chèque existant
+    @PostMapping("/modifier/{id}")
+    public String modifierCheque(@PathVariable Long id,
+                                  @ModelAttribute("cheque") Cheque chequeForm,
+                                  @RequestParam String langue,
+                                  Model model) {
+
+        Cheque chequeExistant = chequeRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Chèque introuvable"));
+
+        // Mise à jour des champs modifiables seulement
+        chequeExistant.setMontant(chequeForm.getMontant());
+        chequeExistant.setVille(chequeForm.getVille());
+        chequeExistant.setDate(chequeForm.getDate());
+        chequeExistant.setBeneficiaire(chequeForm.getBeneficiaire());
+        chequeExistant.setNomCheque(chequeForm.getNomCheque());
+        chequeExistant.setNomSerie(chequeForm.getNomSerie());
+        chequeExistant.setNumeroSerie(chequeForm.getNumeroSerie());
+
+        chequeRepository.save(chequeExistant);
+
+        return "redirect:/cheque/cheque2/" + id + "?langue=" + langue;
+    }
+
+@GetMapping("/afficher/{id}")
+    public String afficherCheque(@PathVariable Long id,
+                                 @RequestParam(defaultValue = "fr") String langue,
+                                 @RequestParam(required = false) Boolean success,
+                                 Model model) {
+        Cheque cheque = chequeRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Chèque introuvable"));
 
         model.addAttribute("cheque", cheque);
         model.addAttribute("montant", cheque.getMontant());
         model.addAttribute("langue", langue);
         model.addAttribute("montantLettre", montantService.convertirMontant(cheque.getMontant(), langue));
+        model.addAttribute("success", success != null && success);
 
         return "cheque-impression";
     }
@@ -104,8 +127,7 @@ public class ChequeMvcController {
         Cheque cheque = chequeRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Chèque introuvable"));
 
-        model.addAttribute("cheque", cheque);
-        model.addAttribute("montant", cheque.getMontant());
+        model.addAttribute("cheque", cheque); // ✅ ID inclus
         model.addAttribute("langue", langue);
         model.addAttribute("montantLettre", montantService.convertirMontant(cheque.getMontant(), langue));
 

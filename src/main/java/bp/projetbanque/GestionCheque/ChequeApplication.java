@@ -14,7 +14,7 @@ public class ChequeApplication {
 
         try {
             Thread.sleep(3000);
-            openBrowser("http://localhost:8104/cheque/formulaire");
+            openBrowser("http://localhost:8104/");
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

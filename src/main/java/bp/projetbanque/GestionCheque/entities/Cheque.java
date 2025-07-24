@@ -4,9 +4,7 @@ import jakarta.persistence.*;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "cheques", uniqueConstraints = {
-    @UniqueConstraint(columnNames = {"nomCheque", "nomSerie", "numeroSerie"})
-})
+@Table(name = "cheques") // ✅ La contrainte unique a été supprimée ici
 public class Cheque {
 
     @Id
@@ -23,9 +21,9 @@ public class Cheque {
     private Long numeroSerie;
 
     private String beneficiaire;
-    
+
     @Column(length = 2)
-    private String langue; // <-- Ajout du champ langue (ex: "fr" ou "ar")
+    private String langue; // Ex: "fr" ou "ar"
 
     // Getters & Setters
     public Long getId() { return id; }
@@ -50,7 +48,7 @@ public class Cheque {
 
     public String getBeneficiaire() { return beneficiaire; }
     public void setBeneficiaire(String beneficiaire) { this.beneficiaire = beneficiaire; }
-    
+
     public String getLangue() { return langue; }
     public void setLangue(String langue) { this.langue = langue; }
 }
